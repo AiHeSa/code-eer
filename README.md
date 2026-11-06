@@ -61,6 +61,8 @@ code-eer/
 - [AST 功能完整性审计（2026-11-06）](docs/technical-designs/2026-11-06/ast-completeness-audit.md)：结构检查、输入和实际结果、转换范围及后续能力。
 - [协议转发与 AST 接入记录（2026-11-06）](docs/changes/2026-11-06/ast-runtime-implementation.md)。
 - [能力分类、回退与提交校验（2026-11-06）](docs/technical-designs/2026-11-06/capability-routing.md)：通用与专项入口、缺项回退、Markdown 继承及 Git pre-commit 校验。
+- [仓库健康度分级评估需求](docs/requirements/code-review/repository-grading.md)：模型与 internal 两路评分、A–E 等级及可选依赖。
+- [仓库分级评估设计草案（2026-11-06）](docs/technical-designs/2026-11-06/repository-grading.md)：抽样、评分合成、结果追溯及等级策略。
 - [核心技术栈与框架范围记录（2026-11-06）](docs/changes/2026-11-06/core-framework-planning.md)。
 - [首批语言范围确认与变更记录（2026-11-06）](docs/changes/2026-11-06/ast-integration-planning.md)。
 - [代码审查用开源 AST 项目调研（2026-11-05）](docs/technical-designs/2026-11-05/ast-project-survey.md)。
