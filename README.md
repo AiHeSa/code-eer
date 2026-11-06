@@ -63,6 +63,8 @@ code-eer/
 - [能力分类、回退与提交校验（2026-11-06）](docs/technical-designs/2026-11-06/capability-routing.md)：通用与专项入口、缺项回退、Markdown 继承及 Git pre-commit 校验。
 - [仓库健康度分级评估需求](docs/requirements/code-review/repository-grading.md)：模型与 internal 两路评分、A–E 等级及可选依赖。
 - [仓库分级评估设计草案（2026-11-06）](docs/technical-designs/2026-11-06/repository-grading.md)：抽样、评分合成、结果追溯及等级策略。
+- [作用域、复杂度与代码位置评分需求](docs/requirements/code-review/scope-complexity-placement.md)：三项独立评分、影响链路及综合评分。
+- [三项评分设计草案（2026-11-06）](docs/technical-designs/2026-11-06/scope-complexity-placement.md)：属性、成本分析、模块角色及建议权重。
 - [核心技术栈与框架范围记录（2026-11-06）](docs/changes/2026-11-06/core-framework-planning.md)。
 - [首批语言范围确认与变更记录（2026-11-06）](docs/changes/2026-11-06/ast-integration-planning.md)。
 - [代码审查用开源 AST 项目调研（2026-11-05）](docs/technical-designs/2026-11-05/ast-project-survey.md)。
