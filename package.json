@@ -7,10 +7,15 @@
     "node": ">=24"
   },
   "scripts": {
+    "prepare": "node scripts/install-hooks.mjs",
     "dev": "tsx services/cli/index.ts",
     "typecheck": "tsc --noEmit",
     "build": "tsc",
-    "test": "tsx --test tests/integration/ast/*.test.ts",
+    "test": "tsx --test tests/integration/*/*.test.*",
+    "test:ast": "tsx --test tests/integration/ast/*.test.ts",
+    "test:capabilities": "tsx --test tests/integration/capabilities/*.test.*",
+    "check:inheritance": "node scripts/check-inheritance.mjs",
+    "setup:hooks": "node scripts/install-hooks.mjs",
     "setup:backends": "node scripts/setup-backends.mjs",
     "check:limits": "node scripts/check-limits.mjs",
     "verify:ast": "node scripts/verify-ast.mjs",

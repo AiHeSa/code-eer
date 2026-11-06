@@ -5,3 +5,5 @@ __pycache__/
 *.pyc
 services/code-review/ast/rust/target/
 services/code-review/ast/java/build/
+.idea/
+.vscode/

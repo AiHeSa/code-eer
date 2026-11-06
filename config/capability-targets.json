@@ -1,0 +1,4 @@
+{
+  "languages": ["js-ts", "js", "ts", "python", "java", "go", "rust"],
+  "frameworks": ["react", "vue"]
+}
