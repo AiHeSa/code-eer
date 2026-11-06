@@ -6,7 +6,12 @@
 
 当前已实现 AST 协议转发、公共结构转换，以及 JS/TS、Python、Java、Go、Rust、React 和 Vue 3 的语法与结构基线。
 
-当前阶段的 22 项审计检查与 132 项回归测试通过。转换范围、验证结果及后续能力见[功能完整性审计](docs/technical-designs/2026-11-06/ast-completeness-audit.md)。
+AST 基线的验证记录为 22 项审计检查与 132 项回归测试通过。转换范围、验证结果及后续能力见[功能完整性审计](docs/technical-designs/2026-11-06/ast-completeness-audit.md)。
+
+三项评分已实现实验引擎：基于 AST 证据执行规则、计算数值或保守区间，按组/文件/模块聚合并保留去重账本、源码快照与完整报告。事实采集见[采集契约与三项算法](docs/technical-designs/2026-11-07/assessment-collection.md)，运行与能力范围见[评分引擎](docs/technical-designs/2026-11-07/scoring-runtime.md)。
+
+评分系统采用[系统设计](docs/technical-designs/2026-11-07/scoring-system.md)和[候选计分策略](docs/technical-designs/2026-11-07/scoring-policy-v0.md)，实验运行参数单独保存在 config/scoring.v0.json。人工质量标定尚未完成；预算、职责或语义证明不足时不产生完整总分。
+本地后台 HTTP 入口与部署状态见[运行记录](docs/technical-designs/2026-11-07/local-service.md)，评分采集通过编程接口及后台接口提供。
 
 ## 目录结构
 
@@ -25,6 +30,7 @@ code-eer/
 ├── services/                    # 服务实现
 │   ├── mcp/                     # MCP 服务入口
 │   ├── cli/                     # CLI 服务入口
+│   ├── server/                  # 本地后台 HTTP 服务入口
 │   └── code-review/             # 代码质量审核服务
 │       ├── internal/            # 当前仓库自身的审核功能实现
 │       └── ast/                 # 语言与框架解析器封装
@@ -84,6 +90,8 @@ npm run setup:backends
 npm run dev -- capabilities --backend python
 npm run dev -- analyze --backend js-ts --root . tests/fixtures/ast/js-ts/View.vue
 npm test
+npm run test:assessment
+npm run test:scoring
 npm run check:inheritance
 npm run typecheck
 npm run build

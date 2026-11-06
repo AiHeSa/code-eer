@@ -108,4 +108,7 @@
 - 综合分可追溯三项及子项贡献，未知项和不适用项按明确策略处理。
 - 同一原始评分在不同仓库等级下保持一致；通用及专项实现通过继承校验。
 
-当前交付为需求与设计草案，分析能力、评分规则和提示词处于待实现状态。
+当前已实现第一阶段 AST 事实采集与三项结构指标，见[采集契约与运行](../../technical-designs/2026-11-07/assessment-collection.md)。
+算法分别细化为[作用域](../../technical-designs/2026-11-07/scope-algorithm.md)、[复杂度](../../technical-designs/2026-11-07/complexity-algorithm.md)、[代码位置](../../technical-designs/2026-11-07/placement-algorithm.md)。
+JS/TS 提供细粒度语法采集，其他语言先复用公共 AST 事实；实验数值评分及聚合已实现，更多语义证明、人工参数校准和提示词按后续阶段推进。
+后续系统设计见[评分系统需求](scoring-system.md)，统一规则、证据、缺失处理和三项合成契约。

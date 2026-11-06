@@ -5,6 +5,7 @@
 - 需求：[REQ-SCP-001](../../requirements/code-review/scope-complexity-placement.md)
 - 记录：[三项评分范围](../../changes/2026-11-06/scope-complexity-placement.md)
 - 关联：[仓库分级评估](repository-grading.md)、[能力分类与回退](capability-routing.md)
+- 后续进展（2026-11-07）：[AST 事实采集与算法细化](../2026-11-07/assessment-collection.md)，第一阶段已落地采集，数值评分尚未启用。
 
 ## 1. 评分约定
 
