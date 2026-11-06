@@ -2,6 +2,7 @@ import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { existsSync } from 'node:fs';
 
 const root = process.cwd();
 const base = join(root, 'services/code-review/ast');
@@ -34,7 +35,9 @@ const selected = process.argv.slice(2);
 for (const language of selected.length ? selected : ['go', 'rust', 'java']) {
   if (language === 'go') {
     await mkdir(join(root, '.cache/bin'), { recursive: true });
-    run('go', ['build', '-o', join(root, '.cache/bin/go-ast'), '.'], join(base, 'go'));
+    const localGo = join(root, '.cache/toolchains/go/bin/go');
+    run(process.env.CODE_EER_GO ?? (existsSync(localGo) ? localGo : 'go'),
+      ['build', '-o', join(root, '.cache/bin/go-ast'), '.'], join(base, 'go'));
   } else if (language === 'rust') run('cargo', ['build', '--release', '--locked'], join(base, 'rust'));
   else if (language === 'java') await buildJava();
   else throw new Error(`Unknown backend: ${language}`);
