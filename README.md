@@ -4,7 +4,9 @@
 
 项目将统一维护分类的代码质量审查要求，通过工具生成适用于不同 Harness（AI 编码工具或代理运行环境）的 Skills / Rules，并结合代码审核服务，通过 MCP、CLI 和前端工作台提供审查能力。
 
-当前已完成项目结构初始化，并开始整理首批 AST 支持需求与接入方案，尚未实现服务、生成工具或前端功能。
+当前已实现 AST 协议转发、公共结构转换，以及 JS/TS、Python、Java、Go、Rust、React 和 Vue 3 的语法与结构基线。
+
+当前阶段的 22 项审计检查与 132 项回归测试通过。转换范围、验证结果及后续能力见[功能完整性审计](docs/technical-designs/2026-11-06/ast-completeness-audit.md)。
 
 ## 目录结构
 
@@ -25,7 +27,7 @@ code-eer/
 │   ├── cli/                     # CLI 服务入口
 │   └── code-review/             # 代码质量审核服务
 │       ├── internal/            # 当前仓库自身的审核功能实现
-│       └── ast/                 # 开源 AST 服务集合
+│       └── ast/                 # 语言与框架解析器封装
 ├── frontend/                    # 独立的前端工作台
 ├── config/                      # 项目级配置
 ├── tests/                       # 独立测试目录
@@ -52,14 +54,35 @@ code-eer/
 
 - [首批单语言 AST 接入需求](docs/requirements/code-review/ast-integration.md)：JS/TS、Python、Java、Go、Rust。
 - [首批单语言 AST 接入方案（2026-11-06）](docs/technical-designs/2026-11-06/ast-integration-plan.md)：选型、接入方式、接口边界与实施顺序。
+- [React 与 Vue 3 支持需求](docs/requirements/code-review/framework-support.md)：框架输入、结构事实、能力边界与验收要求。
+- [结构转换与结果格式（2026-11-06）](docs/technical-designs/2026-11-06/ast-normalization.md)：原生 AST 对照、公共模型与位置转换。
+- [AST 协议与运行说明（2026-11-06）](docs/technical-designs/2026-11-06/ast-runtime.md)：环境、安装、CLI、协议与能力范围。
+- [AST 验证与覆盖矩阵（2026-11-06）](docs/technical-designs/2026-11-06/ast-verification.md)：精确预期、异常输入、较大源码与验收边界。
+- [AST 功能完整性审计（2026-11-06）](docs/technical-designs/2026-11-06/ast-completeness-audit.md)：结构检查、输入和实际结果、转换范围及后续能力。
+- [协议转发与 AST 接入记录（2026-11-06）](docs/changes/2026-11-06/ast-runtime-implementation.md)。
+- [核心技术栈与框架范围记录（2026-11-06）](docs/changes/2026-11-06/core-framework-planning.md)。
 - [首批语言范围确认与变更记录（2026-11-06）](docs/changes/2026-11-06/ast-integration-planning.md)。
 - [代码审查用开源 AST 项目调研（2026-11-05）](docs/technical-designs/2026-11-05/ast-project-survey.md)。
 
 ## 当前状态
 
-- 已建立项目目录骨架并初始化 Git，初始分支为 `main`。
-- 已确定首批单语言支持范围，并形成需求与接入方案草案。
-- 尚未安装依赖或配置启动命令，核心服务与前端技术栈待实现阶段确定。
-- 审查规范、流程编排和配置内容将在后续逐项补充；AST 后端待按方案验证和实现。
+- 核心服务、CLI、本地 stdio 服务和公共契约采用 TypeScript + Node.js。
+- 五个语言后端及 React / Vue 3 已接入真实解析器，提供结构事实、语法诊断和能力状态。
+- 协议具备运行时校验、请求关联、超时、取消与后端故障隔离。
+- 类型与符号能力、框架语义、MCP 入口、审查规则和前端工作台按后续阶段推进。
 
-服务、前端、配置、测试、提示词工程和 AI 目录目前仅含 `.gitkeep` 占位文件，用于在 Git 中保留目录结构，尚无实现内容。
+## 开发命令
+
+```sh
+npm ci
+npm run setup:backends
+npm run dev -- capabilities --backend python
+npm run dev -- analyze --backend js-ts --root . tests/fixtures/ast/js-ts/View.vue
+npm test
+npm run typecheck
+npm run build
+npm run check:limits
+npm run verify:ast
+```
+
+各后端的运行环境、独立构建与详细参数见运行说明。前端、MCP、项目配置、提示词工程和 AI 资源目录保留扩展位置。
