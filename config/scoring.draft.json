@@ -1,0 +1,41 @@
+{
+  "version": "scoring-policy-draft-0",
+  "status": "design-only-unvalidated",
+  "runtimeEnabled": false,
+  "range": [0, 100],
+  "scope": {
+    "base": { "local": 70, "global": 45 },
+    "verifiedBonuses": { "pure": 0.20, "isolatedIife": 0.10, "temporary": 0.10 },
+    "bonusRatioCap": 0.40,
+    "impact": { "methodsLog": 2, "filesLog": 4, "modulesLog": 6, "chainLength": 1.5, "stateCategories": 8, "cap": 65 }
+  },
+  "complexity": {
+    "regularWeights": { "time": 0.60, "space": 0.40 },
+    "overBudgetLogPenalty": { "time": 20, "space": 20 },
+    "requiresBudget": true,
+    "verifiedSevereIssues": {
+      "nontermination": { "deduction": 60, "dimensionCap": 20, "compositeCap": 40 },
+      "leak": { "deduction": 60, "dimensionCap": 20, "compositeCap": 40 }
+    }
+  },
+  "placement": {
+    "weights": {
+      "P-DEPENDENCY-BOUNDARY": 4,
+      "P-PUBLIC-BUSINESS-COUPLING": 4,
+      "P-ENTRY-CONTRACT": 3,
+      "P-LEAF-RESPONSIBILITY": 3,
+      "P-ROLE-MIXING": 2
+    },
+    "violationValues": [0, 1],
+    "requiresResponsibilityContract": true
+  },
+  "compositeWeights": { "scope": 0.45, "complexity": 0.40, "placement": 0.15 },
+  "unknownPolicy": "propagate-interval-no-complete-value",
+  "notApplicablePolicy": "reduced-scope-no-formal-grade",
+  "aggregation": "equal-owned-groups-then-files-then-modules",
+  "sourceWeights": { "internal": 0.60, "model": 0.40 },
+  "sourceDisagreementThreshold": 15,
+  "gradeLowerBounds": { "A": 90, "B": 80, "C": 65, "D": 50, "E": 0 },
+  "requireBothSourcesForGrade": true,
+  "displayDecimalPlaces": 2
+}

@@ -15,6 +15,7 @@
     "test:ast": "tsx --test tests/integration/ast/*.test.ts",
     "test:capabilities": "tsx --test tests/integration/capabilities/*.test.*",
     "test:assessment": "tsx --test tests/integration/assessment/*.test.ts",
+    "test:scoring": "tsx --test tests/integration/scoring/*.test.ts",
     "check:inheritance": "node scripts/check-inheritance.mjs",
     "setup:hooks": "node scripts/install-hooks.mjs",
     "setup:backends": "node scripts/setup-backends.mjs",
