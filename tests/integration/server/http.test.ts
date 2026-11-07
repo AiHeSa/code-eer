@@ -62,7 +62,7 @@ test('HTTP: scoring evaluates the fixed root and returns a persisted experimenta
     const response = await post(url, '/v1/assessments', { files: ['sample.ts'] });
     assert.equal(response.status, 200);
     const body = await response.json();
-    assert.equal(body.engineVersion, 'scoring-engine-1');
+    assert.equal(body.engineVersion, 'scoring-engine-4');
     assert.equal(body.calibration, 'experimental-unvalidated');
     assert.equal(body.files.length, 1);
     assert.ok(body.artifacts.report.endsWith('/report.json'));

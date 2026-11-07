@@ -16,7 +16,8 @@ test('evaluation: real AST evidence produces calculable scope and budget-complia
         modules: [{ id: 'app', root: '.', kind: 'business' }], contracts: [{ moduleId: 'app', allowedDependencies: [], allowExternal: true }],
         budgets: [{ path: 'sample.ts', name: 'leaf', timeOperations: 10, spaceUnits: 10 }] } });
       const fn = report.files[0]!.units.find((unit) => unit.name === 'leaf')!;
-      assert.equal(fn.scope.value, 54);
+      assert.equal(fn.scope.value, 100);
+      assert.equal((fn.scope.details['baseline'] as { value: number }).value, 54);
       assert.equal(fn.complexity.value, 100);
       assert.equal(report.repository.composite.value, null);
       assert.equal(report.grade.value, null);
@@ -39,10 +40,10 @@ test('evaluation: all three dimensions produce a full internal number when their
           { path: 's.ts', name: '<module>', timeOperations: 10, spaceUnits: 10 }],
         responsibilities: [{ path: 's.ts', name: 'leaf', role: 'leaf' }],
       } }, { persist: false });
-      assert.equal(report.repository.scope.value, 54);
+      assert.equal(report.repository.scope.value, 100);
       assert.equal(report.repository.complexity.value, 100);
       assert.equal(report.repository.placement.value, 100);
-      assert.ok(Math.abs(report.repository.composite.value! - 79.3) < 1e-9);
+      assert.equal(report.repository.composite.value, 100);
       assert.equal(report.status, 'complete');
       assert.equal(report.grade.value, null); // Two-source grade is separate from complete internal scoring.
     } finally { ast.close(); }

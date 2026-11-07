@@ -6,22 +6,23 @@ import { moduleFor, type ScoringConfiguration } from './config.js';
 import { resolveDependency, type ProjectFile } from './project.js';
 import { responsibilityRules } from './responsibilities.js';
 
-export function placementRules(file: ProjectFile, files: Set<string>, configuration: ScoringConfiguration): RuleResult[] {
+export function placementRules(file: ProjectFile, files: Set<string>, configuration: ScoringConfiguration, leafDepthOnly = false): RuleResult[] {
   const path = file.snapshot.path, id = `${path}#file`, module = moduleFor(path, configuration);
   const contract = configuration.contracts.find((item) => item.moduleId === module?.id);
   const issues: string[] = [], businessIssues: string[] = [], unresolved: string[] = [];
   const evidence: string[] = [];
   for (const dependency of file.semantics?.dependencies ?? []) {
     evidence.push(`${path}#${dependency.id}`);
+    if (dependency.verifiedExternal) { if (contract && !contract.allowExternal) issues.push(dependency.id); continue; }
     if (!dependency.source) { unresolved.push(dependency.id); continue; }
-    if (!dependency.source.startsWith('.')) {
+    if (!dependency.targetPath && !dependency.source.startsWith('.')) {
       const source = dependency.source.replace(/^node:/, '');
       const packageName = dependency.source.startsWith('@') ? dependency.source.split('/').slice(0, 2).join('/') : dependency.source.split('/')[0]!;
       if (!builtinModules.includes(source) && !builtinModules.includes(dependency.source) && !configuration.externalPackages.includes(packageName)) unresolved.push(dependency.id);
       else if (contract && !contract.allowExternal) issues.push(dependency.id);
       continue;
     }
-    const target = resolveDependency(path, dependency.source, files), targetModule = target ? moduleFor(target, configuration) : null;
+    const target = dependency.targetPath ? files.has(dependency.targetPath) ? dependency.targetPath : null : resolveDependency(path, dependency.source, files), targetModule = target ? moduleFor(target, configuration) : null;
     if (!target || !targetModule) { unresolved.push(dependency.id); continue; }
     if (module?.kind === 'public' && targetModule.kind === 'business') businessIssues.push(dependency.id);
     if (contract && targetModule.id !== module?.id && !contract.allowedDependencies.includes('*') && !contract.allowedDependencies.includes(targetModule.id))
@@ -38,5 +39,5 @@ export function placementRules(file: ProjectFile, files: Set<string>, configurat
   const boundary = make('P-DEPENDENCY-BOUNDARY', issues, module && contract ? true : null);
   const coupling = make('P-PUBLIC-BUSINESS-COUPLING', businessIssues, module?.kind === 'public' ? true : module?.kind === 'business' ? false : null);
   coupling.priority = 1;
-  return [boundary, coupling, ...responsibilityRules(file, configuration)];
+  return [boundary, coupling, ...responsibilityRules(file, configuration, leafDepthOnly)];
 }

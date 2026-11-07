@@ -18,6 +18,9 @@ function components(graph: Map<string, Set<string>>) {
   };
   for (const id of graph.keys()) if (!indices.has(id)) visit(id);
   const dag = new Map([...new Set(ids.values())].map((id) => [id, new Set<number>()]));
+  const sizes = new Map<number, number>();
+  for (const id of ids.values()) sizes.set(id, (sizes.get(id) ?? 0) + 1);
+  const cyclic = new Set([...ids].filter(([id, group]) => sizes.get(group)! > 1 || graph.get(id)?.has(id)).map(([id]) => id));
   for (const [source, targets] of graph) for (const target of targets)
     if (ids.get(source) !== ids.get(target)) dag.get(ids.get(source)!)?.add(ids.get(target)!);
   const memo = new Map<number, number>();
@@ -25,7 +28,7 @@ function components(graph: Map<string, Set<string>>) {
     if (!memo.has(id)) memo.set(id, Math.max(0, ...[...dag.get(id) ?? []].map((target) => 1 + longest(target))));
     return memo.get(id)!;
   };
-  return { ids, longest };
+  return { ids, longest, cyclic };
 }
 
 export function impactAnalyzer(files: ProjectFile[], configuration: ScoringConfiguration) {
@@ -44,9 +47,10 @@ export function impactAnalyzer(files: ProjectFile[], configuration: ScoringConfi
     const currentModule = moduleFor(currentPath, configuration)?.id;
     const modules = new Set(paths.flatMap((path) => moduleFor(path, configuration)?.id ?? []));
     if (currentModule) modules.delete(currentModule);
+    const closed = !pending.length && roots.length > 0 && ![...visited].some((id) => exposed.has(id) || groups.cyclic.has(id));
     return { methods: affected.length, files: paths.filter((path) => path !== currentPath).length,
       modules: modules.size, chainLength: Math.max(0, ...roots.map((id) => groups.ids.has(id) ? groups.longest(groups.ids.get(id)!) : 0)),
-      stateCategories: 0, complete: !pending.length && roots.length > 0 && ![...visited].some((id) => exposed.has(id)),
+      stateCategories: 0, complete: closed, depthComplete: closed,
       evidenceIds: affected, truncated: pending.length > 0 };
   };
 }

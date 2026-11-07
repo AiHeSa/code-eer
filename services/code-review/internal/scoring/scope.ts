@@ -7,7 +7,7 @@ export interface ScopeInput {
   unitId: string; category: 'local' | 'global' | 'unknown';
   bonuses: { pure: Proof | null; isolatedIife: Proof | null; temporary: Proof | null };
   impact: { methods: number; files: number; modules: number; chainLength: number; stateCategories: number;
-    complete: boolean; evidenceIds: string[] };
+    complete: boolean; depthComplete?: boolean; evidenceIds: string[] };
 }
 
 export function scoreScope(input: ScopeInput, policy: ScoringPolicy) {

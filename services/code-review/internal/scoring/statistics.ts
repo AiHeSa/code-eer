@@ -1,10 +1,11 @@
 import type { evaluateProject } from './engine.js';
-import type { ProjectFile } from './project.js';
+import { projectGraph, type ProjectFile } from './project.js';
 import type { ScoringPolicy } from './policy.js';
 
 export function statistics(project: ProjectFile[], result: ReturnType<typeof evaluateProject>, policy: ScoringPolicy) {
   const reasons: Record<string, number> = {};
-  for (const rule of result.rules) if (rule.verdict === 'unknown' && !rule.suppressedBy) reasons[rule.reason] = (reasons[rule.reason] ?? 0) + 1;
+  for (const rule of result.rules) if (rule.applicability !== 'not-applicable' && rule.verdict === 'unknown' && !rule.suppressedBy)
+    reasons[rule.reason] = (reasons[rule.reason] ?? 0) + 1;
   const knownPosition = result.rules.filter((rule) => rule.dimension === 'placement' && rule.applicability === 'applicable'
     && rule.execution === 'complete' && rule.verdict !== 'unknown' && !rule.suppressedBy);
   const weight = (id: string) => policy.placement.weights[id as keyof ScoringPolicy['placement']['weights']];
@@ -18,6 +19,13 @@ export function statistics(project: ProjectFile[], result: ReturnType<typeof eva
       propertyWrites: evidence.references.filter((item) => item.property && item.access !== 'read').length };
   }).sort((a, b) => b.maxLoopDepth - a.maxLoopDepth || b.unresolvedCalls - a.unresolvedCalls).slice(0, 12);
   return { files: project.length, parsedFiles: project.filter((file) => file.collected).length,
+    semanticCoverage: { staticCallsResolved: projectGraph(project).calls.size,
+      queriedFiles: project.filter((file) => file.collected?.semantic).length,
+      failedFiles: project.filter((file) => file.collected?.semantic?.status === 'failed').length,
+      typedReferences: project.reduce((sum, file) => sum + (file.collected?.semantic?.references.filter((ref) => ref.type !== null).length ?? 0), 0),
+      resolvedDefinitions: project.reduce((sum, file) => sum + (file.collected?.semantic?.references.filter((ref) => ref.definition !== null).length ?? 0), 0),
+      totalCalls: project.reduce((sum, file) => sum + (file.collected?.evidence.calls.length ?? 0), 0),
+      purityProofs: project.reduce((sum, file) => sum + (file.semantics?.purity.size ?? 0), 0) },
     failedFiles: result.files.filter((file) => file.errors.length).length,
     syntaxFiles: result.files.filter((file) => file.syntaxCoverage === 'syntax').length,
     structureOnlyFiles: result.files.filter((file) => file.syntaxCoverage === 'structure').length,

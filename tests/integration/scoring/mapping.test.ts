@@ -137,11 +137,14 @@ test('rules: dependency order is deterministic and invalid graphs are rejected',
 
 test('sources: missing/mismatched/disagreeing model results never produce a formal grade', () => {
   const internal = { source: 'internal' as const, snapshotDigest: 'snapshot', policyDigest: 'policy',
+    configurationDigest: 'config', positionContextDigest: 'positions',
     scope: point(80), complexity: point(80), placement: point(80) };
   assert.equal(fuseSources(internal, null, policy).grade.value, null);
   const model = { ...internal, source: 'model' as const };
   assert.equal(fuseSources(internal, model, policy).grade.value, 'B');
   assert.throws(() => fuseSources(internal, { ...model, snapshotDigest: 'other' }, policy), /different snapshots/);
+  assert.throws(() => fuseSources(internal, { ...model, configurationDigest: 'other' }, policy), /position contexts/);
+  assert.throws(() => fuseSources(internal, { ...model, positionContextDigest: 'other' }, policy), /position contexts/);
   assert.equal(fuseSources(internal, { ...model, scope: point(50) }, policy).grade.value, null);
   assert.equal(grade(point(100), policy).value, null);
 });

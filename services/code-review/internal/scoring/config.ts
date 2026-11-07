@@ -1,10 +1,12 @@
 import { z } from 'zod';
 import { isAbsolute, matchesGlob } from 'node:path';
 import { assessmentConfigSchema, normalizePath, within } from '../assessment/config.js';
+import { positionRoleSchema } from './position-policy.js';
 
 export const scoringConfigurationSchema = z.strictObject({
   modules: assessmentConfigSchema.shape.modules,
   externalPackages: z.array(z.string().min(1)).default([]),
+  positions: z.array(z.strictObject({ path: z.string().min(1), role: positionRoleSchema })).default([]),
   contracts: z.array(z.strictObject({ moduleId: z.string(), allowedDependencies: z.array(z.string()),
     allowExternal: z.boolean().default(false) })).default([]),
   budgets: z.array(z.strictObject({ path: z.string().min(1), name: z.string().optional(),

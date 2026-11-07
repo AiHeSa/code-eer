@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { repositoryRoot } from '../ast/root.js';
+import { positionPolicySchema } from './position-policy.js';
 
 const positive = z.number().finite().positive();
 const nonnegative = z.number().finite().nonnegative();
@@ -30,7 +31,10 @@ export const policySchema = z.strictObject({
   sourceWeights: z.strictObject({ internal: weight, model: weight }), sourceDisagreementThreshold: score,
   gradeLowerBounds: z.strictObject({ A: score, B: score, C: score, D: score, E: z.literal(0) }),
   requireBothSourcesForGrade: z.literal(true), displayDecimalPlaces: z.int().min(0).max(6),
+  positionWeighting: positionPolicySchema.optional(),
 }).superRefine((policy, context) => {
+  if ((policy.version === 'scoring-policy-v1') !== Boolean(policy.positionWeighting))
+    context.addIssue({ code: 'custom', message: 'Position weighting requires scoring-policy-v1' });
   for (const weights of [policy.compositeWeights, policy.sourceWeights, policy.complexity.regularWeights])
     if (Math.abs(Object.values(weights).reduce((sum, value) => sum + value, 0) - 1) > 1e-10)
       context.addIssue({ code: 'custom', message: 'Weights must sum to one' });
@@ -39,5 +43,5 @@ export const policySchema = z.strictObject({
 });
 export type ScoringPolicy = z.infer<typeof policySchema>;
 export async function loadPolicy(): Promise<ScoringPolicy> {
-  return policySchema.parse(JSON.parse(await readFile(join(repositoryRoot(), 'config/scoring.v0.json'), 'utf8')));
+  return policySchema.parse(JSON.parse(await readFile(join(repositoryRoot(), 'config/scoring.v1.json'), 'utf8')));
 }

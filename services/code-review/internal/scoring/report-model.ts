@@ -8,11 +8,11 @@ const dimensions = { scope: scoreSchema, complexity: scoreSchema, placement: sco
 const unit = z.strictObject({ id: z.string(), groupId: z.string(), name: z.string().nullable(),
   kind: z.enum(['function', 'binding', 'module']), scope: scoreSchema, complexity: scoreSchema, placement: scoreSchema });
 export const evaluationReportSchema = z.strictObject({
-  schemaVersion: z.literal('1.0'), engineVersion: z.literal('scoring-engine-1'), runId: z.string().uuid(),
+  schemaVersion: z.literal('1.0'), engineVersion: z.enum(['scoring-engine-1', 'scoring-engine-2', 'scoring-engine-3', 'scoring-engine-4']), runId: z.string().uuid(),
   source: z.literal('internal'), calibration: z.literal('experimental-unvalidated'),
   status: z.enum(['complete', 'partial', 'failed']), policy: policySchema, configuration: scoringConfigurationSchema,
   manifest: z.strictObject({ root: z.string(), gitHead: z.string().nullable(), sourceDigest: z.string(),
-    policyDigest: z.string(), configurationDigest: z.string(), selection: z.strictObject({ include: z.array(z.string()), exclude: z.array(z.string()),
+    policyDigest: z.string(), configurationDigest: z.string(), positionContextDigest: z.string().optional(), selection: z.strictObject({ include: z.array(z.string()), exclude: z.array(z.string()),
       files: z.array(z.string()), tests: z.boolean() }),
     files: z.array(z.strictObject({ path: z.string(), language: languageSchema, digest: z.string() })),
     parserVersions: z.record(z.string(), z.string()), startedAt: z.string(), completedAt: z.string(), stable: z.literal(true) }),
