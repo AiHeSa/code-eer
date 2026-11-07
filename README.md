@@ -48,6 +48,8 @@ code-eer/
 
 `prompts/` 是项目自身的产品能力：维护代码质量审查要求，并生成供不同 Harness 使用的 Skills / Rules。要求源文件、生成工具、Harness 适配和生成产物分别存放。
 
+运行前注入与运行时／运行后检查的双入口、共享规则及渐进式分发见 [Prompts 设计与入口模板](docs/technical-designs/2026-11-07/prompt-entry-routing.md)。入口、契约、两级索引和两条初始规则已提供，生成器与自动检查待实现；导航见 [prompts/README.md](prompts/README.md)。
+
 `.ai/` 用于存放开发本项目时使用的共享上下文、Skills 和 Rules。当前只预留目录；这是仓库内部的存放约定，各 Harness 的自动加载入口与配置后续按需接入。
 
 ## 文档组织
@@ -70,6 +72,9 @@ code-eer/
 - [仓库健康度分级评估需求](docs/requirements/code-review/repository-grading.md)：模型与 internal 两路评分、A–E 等级及可选依赖。
 - [仓库分级评估设计草案（2026-11-06）](docs/technical-designs/2026-11-06/repository-grading.md)：抽样、评分合成、结果追溯及等级策略。
 - [作用域、复杂度与代码位置评分需求](docs/requirements/code-review/scope-complexity-placement.md)：三项独立评分、影响链路及综合评分。
+- [作用域与复杂度按代码位置加权需求](docs/requirements/code-review/position-conditioned-weighting.md)：叶子放宽与关键位置从严加权。
+- [代码健康度第一性原理与抗急性劣化需求](docs/requirements/code-review/evolutionary-resilience.md)：演化韧性、内部 Fail-Fast、最小作用链路与前后劣化评估。
+- [抗急性劣化的静态与语义信号设计（2026-11-07）](docs/technical-designs/2026-11-07/anti-degradation-signals.md)：编码前预防指令与编码后增量劣化审阅信号。
 - [三项评分设计草案（2026-11-06）](docs/technical-designs/2026-11-06/scope-complexity-placement.md)：属性、成本分析、模块角色及建议权重。
 - [核心技术栈与框架范围记录（2026-11-06）](docs/changes/2026-11-06/core-framework-planning.md)。
 - [首批语言范围确认与变更记录（2026-11-06）](docs/changes/2026-11-06/ast-integration-planning.md)。

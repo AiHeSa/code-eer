@@ -1,0 +1,54 @@
+{
+  "version": "prompt-catalog-v1",
+  "status": "source-skeleton",
+  "coverage": "Two initial common rules; target rules and runtime dispatch are pending.",
+  "targetRouters": {
+    "js-ts": "routing/targets/js-ts.json",
+    "python": "routing/targets/python.json",
+    "java": "routing/targets/java.json",
+    "go": "routing/targets/go.json",
+    "rust": "routing/targets/rust.json",
+    "react": "routing/targets/react.json",
+    "vue": "routing/targets/vue.json",
+    "js": "routing/targets/js-ts.json",
+    "ts": "routing/targets/js-ts.json"
+  },
+  "commonRules": [
+    {
+      "id": "scope-minimal-link",
+      "category": "scope",
+      "summary": "结合当前职责和先例评估跨文件链路的必要性",
+      "source": "requirements/scope/minimal-link.md",
+      "phases": [
+        "inject",
+        "check"
+      ],
+      "requires": [],
+      "checkTrigger": {
+        "any": [
+          "delta:single-consumer-export",
+          "delta:scope-chain-growth"
+        ]
+      },
+      "variants": {}
+    },
+    {
+      "id": "placement-fail-fast",
+      "category": "placement",
+      "summary": "基于实际输入契约识别掩盖错误的冗余防御",
+      "source": "requirements/placement/fail-fast-boundary.md",
+      "phases": [
+        "inject",
+        "check"
+      ],
+      "requires": [],
+      "checkTrigger": {
+        "any": [
+          "delta:internal-defensive-branch",
+          "delta:empty-catch"
+        ]
+      },
+      "variants": {}
+    }
+  ]
+}

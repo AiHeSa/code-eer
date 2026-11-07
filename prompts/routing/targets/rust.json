@@ -1,0 +1,6 @@
+{
+  "target": "rust",
+  "kind": "language",
+  "status": "pending-rules",
+  "rules": []
+}
