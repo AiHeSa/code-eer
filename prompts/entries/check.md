@@ -14,6 +14,7 @@
 4. 深度语义审阅可由支持隔离执行且已获任务授权的适配器分发；否则在当前审阅上下文处理，不要求宿主一定具备子代理能力。
 
 ## dispatch
+先按 `../contracts/workflow.md` 核对原型状态；pending-review 的补审覆盖原先豁免代码和接入边界，不受当轮 diff 限制。用户确认实施不免除本阶段审查。
 依据 `../contracts/context.md` 与 `../contracts/resolution.md` 按异常信号精准分发：
 1. 比对 `../routing/catalog.json` 中通用规则的 `checkTrigger` 与当前增量差分（如存量复杂度放大 $\Delta C$、作用链路增长 $\Delta F / \Delta L / \Delta W$、入度为 1 的跨文件导出、内部防御分支）。
 2. 只读取顶层目录映射到当前语言／框架的目标索引，比对其中规则文件族的 checkTrigger。

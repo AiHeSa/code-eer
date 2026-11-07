@@ -9,19 +9,21 @@ export const adapters = { codex, dsh };
 const stages = ['inject', 'check'];
 const descriptions = {
     inject: 'Apply EER quality constraints before implementing or changing source code. Select guidance for the current language and framework; exclude documentation-only tasks.',
-    check: 'Review completed source-code changes using EER quality rules and evidence. Use for incremental or final code review; provide advisory findings rather than a blocking gate.',
+    check: 'Review source code using EER quality rules and evidence. Use for incremental or final code review and prototype graduation, including previously exempted code without a current diff; provide advisory findings rather than a blocking gate.',
 };
 
 export async function buildBundle(repository, { harness, targets } = {}) {
     if (!adapters[harness]) throw new Error(`Unsupported harness: ${harness}`);
     const selection = await loadCatalog(repository, targets);
     const documents = await loadDocuments(selection);
+    const workflow = await selection.read('prompts/contracts/workflow.md');
     const files = new Map(),
         projections = {};
     for (const stage of stages) {
         const root = `${adapters[harness].skillRoot}/eer-${stage}`;
         const projected = projectStage(stage, selection, documents);
         files.set(`${root}/SKILL.md`, skill(stage, projected.routes));
+        files.set(`${root}/references/workflow.md`, workflow);
         for (const [name, text] of projected.resources) files.set(`${root}/references/${name}.md`, text);
         projections[stage] = { default: 'common', routes: projected.routes, origins: projected.origins };
     }
@@ -38,7 +40,7 @@ function skill(stage, routes) {
             : 'Review the current diff and evidence after a meaningful edit batch or before delivery. Default to postrun; runtime covers affected objects.';
     return (
         `---\nname: eer-${stage}\ndescription: ${descriptions[stage]}\n---\n# EER ${stage}\n\n${action}\n\n` +
-        'Read [common guidance](references/common.md). Omitted targets use this default.\n\n' +
+        'Read [workflow](references/workflow.md) for prototype exemptions, graduation and authorization; then read [common guidance](references/common.md). Omitted targets use this default.\n\n' +
         (routes.length
             ? 'For each code object, select at most one override: exact language/framework pair, then framework, then language. Read common first; replace only named entries and inherit missing entries. Do not combine multiple framework overrides without explicit precedence.\n\n' +
               routes

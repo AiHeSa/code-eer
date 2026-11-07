@@ -8,6 +8,7 @@
 
 - entries/：已提供 [inject.md](entries/inject.md) 与 [check.md](entries/check.md) 编排源，不是已安装的 Skill／Rule。
 - contracts/：已提供 [context.md](contracts/context.md)、[resolution.md](contracts/resolution.md)、[results.md](contracts/results.md) 和 [triggers.md](contracts/triggers.md)，约束构建器及后续评估器。
+- [workflow.md](contracts/workflow.md)：原型临时豁免、毕业补审、授权与审查分离及判断依据；由两个 Skill 和 Harness 共用，状态由执行代理维护。
 - routing/：已提供 [catalog.json](routing/catalog.json) 和 7 个目标路由骨架；目标路由均为 pending-rules，不代表已完成对应语言审查。
 - requirements/：唯一规则正文来源；当前两条初始规则为[最小链路](requirements/scope/minimal-link.md)和[输入边界](requirements/placement/fail-fast-boundary.md)。后续类别及目标规则继续研究。
 - generators/：目录校验、目标组合、阶段投影、安装／更新／卸载已实现；Token 计量与预算裁剪待实现。
@@ -20,7 +21,7 @@
 专项声明 extends: ./xx.md，二级标题取自根文件；仅适用某目标的规则也定义完整根契约并限定目标。
 不以目标目录下的独立根规则绕开仓库继承要求；目标标识以 config/capability-targets.json 为准。
 生成产物始终保留 common.md，只为当前阶段存在实际差异的目标输出专项条目；同默认内容相同就不生成文件。
-当前没有语言／框架专项正文，因此两个 Skill 的 references/ 都只有 common.md，不再枚举语言和框架副本。
+当前没有语言／框架专项正文，因此两个 Skill 的 references/ 仅包含通用规则 common.md 与共享流程 workflow.md，不再枚举语言和框架副本。
 
 ## 核心运行边界
 
@@ -28,6 +29,8 @@
 2. 连续编码调试期间不主动插入检查；runtime 在一轮编辑结束后处理增量，postrun 核对约定范围。
 3. 预筛区分 triggered、clear、unknown；证据不足保留 partial，配置错误为 failed。clear 不等于语义审查通过。
 4. 只有全部适用候选 clear 且无延后项或覆盖限制才可静默结束；当前规则和目标覆盖仍不完整。
+5. 原型仅跳过明确记录的对象／规则；正式模块引用或用户决定保留时退出豁免并补审。用户授权大改不免除 eer-check。
+6. 模糊判断允许合理差异，缺证据仍为 unknown／partial；功能健康度扩展留待后续，不纳入当前规则范围。
 
 ## 安装
 

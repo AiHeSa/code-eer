@@ -36,7 +36,7 @@ test('build output is self-contained and refuses an existing directory; invalid 
     const build = run('build', '--harness', 'codex', '--targets', 'ts,react', '--output', output);
     assert.equal(build.status, 0, build.stderr);
     await access(join(output, '.agents/skills/eer-inject/references/common.md'));
-    assert.deepEqual(await readdir(join(output, '.agents/skills/eer-inject/references')), ['common.md']);
+    assert.deepEqual(await readdir(join(output, '.agents/skills/eer-inject/references')), ['common.md', 'workflow.md']);
     await access(join(output, 'AGENTS.fragment.md'));
     const repeated = run('build', '--harness', 'codex', '--output', output);
     assert.notEqual(repeated.status, 0);

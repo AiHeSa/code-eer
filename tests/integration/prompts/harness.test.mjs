@@ -64,7 +64,7 @@ test('Codex hooks emit actual rules and applicability from a relocatable bundle,
         assert.ok(text.includes(join(root, 'guidance/eer-check/references/common.md')));
         assert.doesNotMatch(text, /Untrusted prompt|### evidence|### check/);
     }
-    assert.deepEqual(await readdir(join(root, 'guidance/eer-inject/references')), ['common.md']);
+    assert.deepEqual(await readdir(join(root, 'guidance/eer-inject/references')), ['common.md', 'workflow.md']);
     const configuration = JSON.parse(await readFile(join(root, 'hooks/hooks.json'), 'utf8'));
     assert.deepEqual(Object.keys(configuration.hooks), ['SessionStart', 'SubagentStart', 'UserPromptSubmit']);
     for (const groups of Object.values(configuration.hooks)) {
@@ -147,8 +147,12 @@ test('native package keeps only effective language deltas, loaded progressively 
     assert.ok(text.includes(join(root, 'guidance/eer-inject/references/ts.md')));
     assert.doesNotMatch(text, /Unique TS guidance/);
     assert.match(await readFile(join(root, 'guidance/eer-inject/references/ts.md'), 'utf8'), /Unique TS guidance/);
-    assert.deepEqual(await readdir(join(root, 'guidance/eer-check/references')), ['common.md']);
-    assert.deepEqual(await readdir(join(root, 'guidance/eer-inject/references')), ['common.md', 'ts.md']);
+    assert.deepEqual(await readdir(join(root, 'guidance/eer-check/references')), ['common.md', 'workflow.md']);
+    assert.deepEqual(await readdir(join(root, 'guidance/eer-inject/references')), [
+        'common.md',
+        'ts.md',
+        'workflow.md',
+    ]);
 });
 
 test('build-harness CLI previews without writing and exports only into an explicitly named new directory', async (t) => {

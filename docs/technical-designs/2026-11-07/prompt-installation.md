@@ -28,16 +28,18 @@ DSH 核查来自本机 DeepSeek Harness.app 内 app.asar 中的第一方包 READ
 ├── .agents/skills/
 │   ├── eer-inject/
 │   │   ├── SKILL.md
-│   │   └── references/             # common.md + 确有差异的目标条目
+│   │   └── references/             # workflow.md、common.md + 确有差异的目标条目
 │   └── eer-check/
 │       ├── SKILL.md
-│       └── references/             # common.md + 当前阶段检查差异
+│       └── references/             # workflow.md、common.md + 当前阶段检查差异
 └── .code-eer/prompts/
     ├── bundle.json                 # 来源／产物摘要、目标及覆盖限制
-    └── install.json                # 受管文件哈希与可撤回的 AGENTS 块
+    ├── install.json                # 受管文件哈希与可撤回的 AGENTS 块
+    └── exemptions.json             # 有豁免时由执行代理维护，非安装器产物
 ```
 
 两端使用同名同布局资源，在一个项目中从 codex 切换为 dsh 安装时更新已有受管产物，不安装第二份。
+两个 Skill 均先读取共享流程再读取具体规则，独立调用 check 同样核对豁免毕业状态。[豁免账本](prototype-review-workflow.md)属于项目运行记录，安装、更新和卸载均保留它。
 DSH 原生 .dsh/skills/ 下若已有 EER 同名包或平铺 Markdown，安装前拒绝冲突。
 Git 仓库只接受根目录，避免 DSH 与 Codex 的项目发现差异导致子目录安装不可见。
 AGENTS.override.md 存在时拒绝写入会被遮蔽的 AGENTS.md；不擅自修改 override。
@@ -84,7 +86,7 @@ common.md 保存完整默认要求，专项只保存发生变化的条目；标�
 没有目标信息时读 common，并声明覆盖限制；多框架同时作用同一对象时不静默组合。
 
 inject 的有效内容为 applicability 与 inject；check 为 applicability、check、evidence，均由默认加专项差异合成。
-语言／框架没有专项规则时，两个 Skill 的 references/ 均仅有 common.md；证据条目只变化时，仅影响 check 资源。
+语言／框架没有专项规则时，两个 Skill 的 references/ 均仅有 common.md 和共享流程 workflow.md；证据条目只变化时，仅影响 check 资源。
 来源链保存在构建清单的 projections 中，不因来源路径不同而复制相同规则正文。
 没有静态预筛器时，eer-check 执行建议式审阅；缺基线或语义证据时保留 unknown／partial，不伪造静态通过结论。
 当前没有实际模型 Token 计量和预算裁剪，bundle.json 明确 tokenBudget.status=unverified，不宣称满足 200 Tokens。

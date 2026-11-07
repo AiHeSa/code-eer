@@ -13,6 +13,7 @@
 3. 条件、例外与约束作为完整单元计入预算；无法容纳时延后该规则并记录 partial，不能截掉前提。
 
 ## dispatch
+先按 `../contracts/workflow.md` 核对改动授权及原型豁免状态；只跳过明确处于 prototype 状态的指定对象／规则，毕业项立即恢复正常要求。
 依据 `../contracts/context.md` 与 `../contracts/resolution.md` 执行两级分发：
 1. 从 `../routing/catalog.json` 选取 `phase=inject` 的通用规则，并按当前对象合并同目录 `xx.<target>.md` 专项覆盖。
 2. 仅打开目录映射到当前目标的路由，按规范化路径去重后选取规则文件族；专项必须关联同目录通用根文件。
@@ -25,3 +26,4 @@
 
 ## output
 按 `../contracts/results.md` 生成精简前置约束清单；内部覆盖记录与规则 ID 留存备查，不在主对话中打印冗长元流程账本。
+豁免记录在目标项目独立运行账本中，不能随会话结束丢失或混入受管安装清单。

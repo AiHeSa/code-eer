@@ -54,8 +54,8 @@ test('Codex and DSH share self-contained skills; builds are deterministic and ad
     assert.ok(!injection.includes('### check'));
     for (const stage of ['inject', 'check']) {
         assert.deepEqual(
-            [...a.files.keys()].filter((name) => name.startsWith(`.agents/skills/eer-${stage}/references/`)),
-            [`.agents/skills/eer-${stage}/references/common.md`],
+            [...a.files.keys()].filter((name) => name.startsWith(`.agents/skills/eer-${stage}/references/`)).sort(),
+            [`.agents/skills/eer-${stage}/references/common.md`, `.agents/skills/eer-${stage}/references/workflow.md`],
         );
         assert.deepEqual(a.manifest.projections[stage].routes, []);
     }

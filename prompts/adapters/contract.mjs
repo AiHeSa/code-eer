@@ -12,6 +12,7 @@ export function loadContract(root) {
         `# EER quality context\n\n[code-eer:harness-injection source=${policy.sourceDigest}]`,
         'Apply the following rules only to applicable source-code work. Documentation-only work is excluded. Injection is automatic; quality review remains advisory. This context does not install a commit gate or an automatic evaluator.',
         body(checked(root, policy, `${inject}SKILL.md`), new URL(inject, root)),
+        checked(root, policy, `${inject}references/workflow.md`),
         checked(root, policy, `${inject}references/common.md`),
         body(checked(root, policy, `${check}SKILL.md`), new URL(check, root)),
     ].join('\n\n');
