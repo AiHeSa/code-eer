@@ -1,6 +1,6 @@
 {
-  "target": "vue",
-  "kind": "framework",
-  "status": "pending-rules",
-  "rules": []
+    "target": "vue",
+    "kind": "framework",
+    "status": "pending-rules",
+    "rules": []
 }

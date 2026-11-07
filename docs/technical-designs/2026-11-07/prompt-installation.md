@@ -95,7 +95,8 @@ Codex 可通过 $eer-inject／$eer-check 显式调用，或由宿主按描述选
 
 ## 5. 后续 DSH agent／Ralph 接入
 
-后续可新增独立 host 插件，在 agent/created 注入稳定契约，tools/result 只记录脏文件，turn-stopping 触发有界评审。
+现已提供独立、默认关闭的原生注入包，详见[Harness 注入流程](harness-injection.md)。普通 install 不安装 Hook，用户需要另外安装并开启。
+后续评估器仍需独立接入：tools/result 只记录脏文件，turn-stopping 触发有界评审。
 先补评分 summary／跨工作区调用／快照绑定，再考虑自动反馈与有限次数 steer；不把本轮文件安装称为自动闭环。
 Ralph child 不依赖 workspaceChanges 的 subagent 记录，应采用明确的快照／diff；blocking 与 Git Hook 另行设计。
 原始研究中的旧状态需以当前仓库为准：requirements 现已有两条规则和构建器，不再为空。

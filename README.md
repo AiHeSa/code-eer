@@ -89,6 +89,10 @@ code-eer/
 
 ## 开发命令
 
+代码质量指引支持常规 Skill 安装及[用户主动开启的 Harness 注入](docs/technical-designs/2026-11-07/harness-injection.md)；后者默认关闭，不随 Skill 安装生效。
+
+代码采用四空格缩进，使用 `npm run format` 格式化、`npm run format:check` 校验。原生语言工具与排除范围见[格式约定](docs/technical-designs/2026-11-07/code-formatting.md)，本轮评分及结构改进项见[质量复评](docs/reports/2026-11-07/repository-format-quality.md)。
+
 ```sh
 npm ci
 npm run setup:backends

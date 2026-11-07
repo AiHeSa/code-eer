@@ -1,6 +1,6 @@
 {
-  "target": "java",
-  "kind": "language",
-  "status": "pending-rules",
-  "rules": []
+    "target": "java",
+    "kind": "language",
+    "status": "pending-rules",
+    "rules": []
 }

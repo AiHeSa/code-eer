@@ -1,6 +1,6 @@
 {
-  "target": "react",
-  "kind": "framework",
-  "status": "pending-rules",
-  "rules": []
+    "target": "react",
+    "kind": "framework",
+    "status": "pending-rules",
+    "rules": []
 }

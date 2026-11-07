@@ -1,7 +1,7 @@
 # Prompts 双入口、低干扰边界与语言／框架分层分发设计
 
 - 日期：2026-11-07
-- 状态：源文件、索引、构建与项目安装已实现；自动预筛与 Hook 待实现，见[安装说明](prompt-installation.md)。
+- 状态：源文件、索引、构建、项目 Skill 安装及默认关闭的原生注入包已实现；自动预筛与评估器待实现，见[安装说明](prompt-installation.md)和[Harness 注入流程](harness-injection.md)。
 - 需求：[双入口与分层分发](../../requirements/prompts/entry-routing.md)
 - 记录：[修正与验证](../../changes/2026-11-07/prompt-entry-routing.md)
 - 基础：[能力继承](../2026-11-06/capability-routing.md)、[抗急性劣化信号](anti-degradation-signals.md)
@@ -13,7 +13,7 @@
 入口负责编排，requirements 是质量要求的唯一正文来源，公共输出及分发约定放在 contracts。
 
 构建期处理静态来源和可预生成的阶段资源；本地运行时依据任务、目标及当前快照选择有效资源。
-Skill／项目指引包装与安装已实现；实际 Token 计量、差分计算及自动 Hook 后续实现。
+Skill／项目指引包装与安装已实现；原生注入由用户单独安装开启。实际 Token 计量、差分计算及自动评估器后续实现。
 源 Markdown 中的流程描述和链接不等于已安装的自动触发器。
 
 ## 2. 当前目录

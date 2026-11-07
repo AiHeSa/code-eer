@@ -1,7 +1,7 @@
 # Prompts
 
 面向被审查项目的质量规范及 Skill / Rule 生成源，采用双入口、两级路由、统一规则继承和静态预筛设计。
-当前已提供规则源、构建器及 Codex／DSH 的项目级安装器；差分预筛器与 Harness 自动触发尚未接入。
+当前已提供规则源、构建器及 Codex／DSH 的项目级 Skill 安装器，并提供需要用户自行安装、开启的 Harness 注入包；差分预筛器与自动评估器尚未接入。
 完整方案见[双入口与分层分发设计](../docs/technical-designs/2026-11-07/prompt-entry-routing.md)。
 
 ## 目录结构与当前状态
@@ -11,7 +11,7 @@
 - routing/：已提供 [catalog.json](routing/catalog.json) 和 7 个目标路由骨架；目标路由均为 pending-rules，不代表已完成对应语言审查。
 - requirements/：唯一规则正文来源；当前两条初始规则为[最小链路](requirements/scope/minimal-link.md)和[输入边界](requirements/placement/fail-fast-boundary.md)。后续类别及目标规则继续研究。
 - generators/：目录校验、目标组合、阶段投影、安装／更新／卸载已实现；Token 计量与预算裁剪待实现。
-- adapters/：Codex 与 DSH 的 Skill／项目指引格式及发现根已适配，自动 Hook 待实现。
+- adapters/：Codex／DSH 的 Skill 发现约定，以及独立可选的原生注入适配器。注入不等于自动评分或检查门禁。
 - generated/：预留构建产物位置；使用 build --output 显式输出到新目录，不自动提交生成物。
 
 ## 规则组织
@@ -39,5 +39,15 @@ npm run prompts -- install --harness codex --project /path/to/project --targets 
 DSH 将 --harness 改为 dsh；两端共用 .agents/skills/，无需重复安装。
 默认只读预览，--apply 才写入；卸载使用 npm run prompts -- uninstall --project /path/to/project --apply。
 完整命令、宿主要求和限制见[安装说明](../docs/technical-designs/2026-11-07/prompt-installation.md)。
+
+## 可选 Harness 强制注入
+
+```sh
+npm run prompts -- build-harness --harness codex --output /absolute/new-codex-bundle
+npm run prompts -- build-harness --harness dsh --output /absolute/new-dsh-bundle
+```
+
+普通安装不会启用此流程。用户需要在宿主内主动安装并开启：Codex 通过本地插件和受信任的 Hook 注入；DSH 插件行默认禁用，开启后注册 required context。通用规则正文直接进入模型上下文，专项继续按对象渐进加载，check 保持建议式。
+用户级／profile 级的开启、验证、关闭及宿主限制见[Harness 注入流程](../docs/technical-designs/2026-11-07/harness-injection.md)。
 
 需求见[双入口与分发](../docs/requirements/prompts/entry-routing.md)，修正及验证见[变更记录](../docs/changes/2026-11-07/prompt-entry-routing.md)。
