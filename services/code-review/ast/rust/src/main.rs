@@ -1,20 +1,26 @@
+mod expressions;
 mod model;
 mod visitor;
-mod expressions;
 
 use serde_json::{Value, json};
 use std::io::{self, Read};
 use syn::visit::Visit;
 
 fn version() -> &'static str {
-    include_str!("../Cargo.lock").split("[[package]]")
+    include_str!("../Cargo.lock")
+        .split("[[package]]")
         .find(|block| block.contains("name = \"syn\"") && block.contains("version = \"2."))
         .and_then(|block| block.lines().find(|line| line.starts_with("version = ")))
-        .and_then(|line| line.split('"').nth(1)).unwrap_or("unknown")
+        .and_then(|line| line.split('"').nth(1))
+        .unwrap_or("unknown")
 }
 
 fn parse(source: &str) -> Value {
-    let mut extractor = model::Extractor { source, nodes: vec![], parent: None };
+    let mut extractor = model::Extractor {
+        source,
+        nodes: vec![],
+        parent: None,
+    };
     let mut diagnostics = vec![];
     match syn::parse_file(source) {
         Ok(file) => extractor.visit_file(&file),

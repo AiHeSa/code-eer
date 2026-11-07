@@ -1,6 +1,9 @@
 use crate::model::Extractor;
 use serde_json::json;
-use syn::{spanned::Spanned, visit::{self, Visit}};
+use syn::{
+    spanned::Spanned,
+    visit::{self, Visit},
+};
 
 impl<'ast> Visit<'ast> for Extractor<'_> {
     fn visit_item_fn(&mut self, node: &'ast syn::ItemFn) {

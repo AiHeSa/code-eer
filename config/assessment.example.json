@@ -1,7 +1,7 @@
 {
-  "modules": [
-    { "id": "services", "root": "services", "kind": "unknown" },
-    { "id": "assessment", "root": "services/code-review/internal/assessment", "kind": "public" },
-    { "id": "cli", "root": "services/cli", "kind": "business", "entries": ["services/cli/index.ts"] }
-  ]
+    "modules": [
+        { "id": "services", "root": "services", "kind": "unknown" },
+        { "id": "assessment", "root": "services/code-review/internal/assessment", "kind": "public" },
+        { "id": "cli", "root": "services/cli", "kind": "business", "entries": ["services/cli/index.ts"] }
+    ]
 }

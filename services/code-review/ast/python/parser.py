@@ -6,7 +6,8 @@ from metadata import details
 
 
 def byte_offset(lines, row, column):
-    return sum(len(line.encode('utf-8')) for line in lines[:row - 1]) + column
+    """Python AST 的列号已经是 UTF-8 字节偏移，不再次按字符转换。"""
+    return sum(len(line.encode('utf-8')) for line in lines[: row - 1]) + column
 
 
 def location(node, lines):
@@ -44,9 +45,16 @@ def describe(node, parent_kind):
 
 def append_node(node, parent, kind, name, output, lines):
     start, end = location(node, lines)
-    item = {'id': str(len(output)), 'parent': parent, 'type': kind,
-            'nativeType': type(node).__name__, 'name': name, 'start': start, 'end': end,
-            'data': details(node)}
+    item = {
+        'id': str(len(output)),
+        'parent': parent,
+        'type': kind,
+        'nativeType': type(node).__name__,
+        'name': name,
+        'start': start,
+        'end': end,
+        'data': details(node),
+    }
     if kind in ('function', 'method'):
         item['parameters'] = parameters(node)
         item['async'] = isinstance(node, ast.AsyncFunctionDef)
@@ -81,8 +89,13 @@ def main():
     request = json.load(sys.stdin)
     source = request['source']
     lines = re.split(r'(?<=\n)|(?<=\r)(?!\n)', source)
-    result = {'version': sys.version.split()[0], 'runtime': sys.version.split()[0],
-              'encoding': 'utf8', 'nodes': [], 'diagnostics': []}
+    result = {
+        'version': sys.version.split()[0],
+        'runtime': sys.version.split()[0],
+        'encoding': 'utf8',
+        'nodes': [],
+        'diagnostics': [],
+    }
     try:
         version = request.get('config', {}).get('pythonVersion')
         tree = ast.parse(source, filename=request['path'], type_comments=True, feature_version=version)

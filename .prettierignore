@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.cache/
+.git/
+tests/fixtures/
+prompts/generated/
+services/code-review/ast/java/build/
+services/code-review/ast/rust/target/
+package-lock.json
+**/Cargo.lock
+**/*.md
+**/*.yaml
+**/*.yml

@@ -1,41 +1,45 @@
 {
-  "name": "code-eer",
-  "version": "0.1.0",
-  "private": true,
-  "type": "module",
-  "engines": {
-    "node": ">=24"
-  },
-  "scripts": {
-    "prepare": "node scripts/install-hooks.mjs",
-    "dev": "tsx services/cli/index.ts",
-    "typecheck": "tsc --noEmit",
-    "build": "tsc",
-    "test": "tsx --test tests/integration/*/*.test.*",
-    "test:ast": "tsx --test tests/integration/ast/*.test.ts",
-    "test:capabilities": "tsx --test tests/integration/capabilities/*.test.*",
-    "test:assessment": "tsx --test tests/integration/assessment/*.test.ts",
-    "test:scoring": "tsx --test tests/integration/scoring/*.test.ts",
-    "check:inheritance": "node scripts/check-inheritance.mjs",
-    "prompts": "node scripts/prompts.mjs",
-    "test:prompts": "node --test tests/integration/prompts/*.test.mjs",
-    "setup:hooks": "node scripts/install-hooks.mjs",
-    "setup:backends": "node scripts/setup-backends.mjs",
-    "check:limits": "node scripts/check-limits.mjs",
-    "verify:ast": "node scripts/verify-ast.mjs",
-    "verify:ast:corpus": "node scripts/verify-ast-corpus.mjs",
-    "audit:ast": "node dist/tests/audit/ast/run.js"
-  },
-  "dependencies": {
-    "@vscode/tree-sitter-wasm": "0.3.1",
-    "@vue/compiler-dom": "3.5.45",
-    "@vue/compiler-sfc": "3.5.45",
-    "pyright": "1.1.414",
-    "typescript": "7.1.0-beta",
-    "zod": "4.6.7"
-  },
-  "devDependencies": {
-    "@types/node": "24.19.2",
-    "tsx": "4.23.15"
-  }
+    "name": "code-eer",
+    "version": "0.1.0",
+    "private": true,
+    "type": "module",
+    "engines": {
+        "node": ">=24"
+    },
+    "scripts": {
+        "format": "prettier --write . && node scripts/format-native.mjs",
+        "format:check": "prettier --check . && node scripts/format-native.mjs --check",
+        "prepare": "node scripts/install-hooks.mjs",
+        "dev": "tsx services/cli/index.ts",
+        "typecheck": "tsc --noEmit",
+        "build": "tsc",
+        "test": "tsx --test tests/integration/*/*.test.*",
+        "test:ast": "tsx --test tests/integration/ast/*.test.ts",
+        "test:capabilities": "tsx --test tests/integration/capabilities/*.test.*",
+        "test:assessment": "tsx --test tests/integration/assessment/*.test.ts",
+        "test:scoring": "tsx --test tests/integration/scoring/*.test.ts",
+        "check:inheritance": "node scripts/check-inheritance.mjs",
+        "prompts": "node scripts/prompts.mjs",
+        "test:prompts": "node --test tests/integration/prompts/*.test.mjs",
+        "setup:hooks": "node scripts/install-hooks.mjs",
+        "setup:backends": "node scripts/setup-backends.mjs",
+        "check:limits": "node scripts/check-limits.mjs",
+        "verify:ast": "node scripts/verify-ast.mjs",
+        "verify:ast:corpus": "node scripts/verify-ast-corpus.mjs",
+        "audit:ast": "node dist/tests/audit/ast/run.js"
+    },
+    "dependencies": {
+        "@vscode/tree-sitter-wasm": "0.3.1",
+        "@vue/compiler-dom": "3.5.45",
+        "@vue/compiler-sfc": "3.5.45",
+        "pyright": "1.1.414",
+        "typescript": "7.1.0-beta",
+        "zod": "4.6.7"
+    },
+    "devDependencies": {
+        "@types/node": "24.19.2",
+        "prettier": "3.9.10",
+        "prettier-plugin-java": "2.11.0",
+        "tsx": "4.23.15"
+    }
 }

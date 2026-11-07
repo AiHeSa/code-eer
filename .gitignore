@@ -7,3 +7,4 @@ services/code-review/ast/rust/target/
 services/code-review/ast/java/build/
 .idea/
 .vscode/
+.DS_Store

@@ -1,88 +1,82 @@
 {
-  "version": "scoring-policy-v0",
-  "status": "experimental-unvalidated",
-  "runtimeEnabled": true,
-  "range": [
-    0,
-    100
-  ],
-  "scope": {
-    "base": {
-      "local": 70,
-      "global": 45
+    "version": "scoring-policy-v0",
+    "status": "experimental-unvalidated",
+    "runtimeEnabled": true,
+    "range": [0, 100],
+    "scope": {
+        "base": {
+            "local": 70,
+            "global": 45
+        },
+        "verifiedBonuses": {
+            "pure": 0.2,
+            "isolatedIife": 0.1,
+            "temporary": 0.1
+        },
+        "bonusRatioCap": 0.4,
+        "impact": {
+            "methodsLog": 2,
+            "filesLog": 4,
+            "modulesLog": 6,
+            "chainLength": 1.5,
+            "stateCategories": 8,
+            "cap": 65
+        }
     },
-    "verifiedBonuses": {
-      "pure": 0.2,
-      "isolatedIife": 0.1,
-      "temporary": 0.1
+    "complexity": {
+        "regularWeights": {
+            "time": 0.6,
+            "space": 0.4
+        },
+        "overBudgetLogPenalty": {
+            "time": 20,
+            "space": 20
+        },
+        "requiresBudget": true,
+        "verifiedSevereIssues": {
+            "nontermination": {
+                "deduction": 60,
+                "dimensionCap": 20,
+                "compositeCap": 40
+            },
+            "leak": {
+                "deduction": 60,
+                "dimensionCap": 20,
+                "compositeCap": 40
+            }
+        }
     },
-    "bonusRatioCap": 0.4,
-    "impact": {
-      "methodsLog": 2,
-      "filesLog": 4,
-      "modulesLog": 6,
-      "chainLength": 1.5,
-      "stateCategories": 8,
-      "cap": 65
-    }
-  },
-  "complexity": {
-    "regularWeights": {
-      "time": 0.6,
-      "space": 0.4
+    "placement": {
+        "weights": {
+            "P-DEPENDENCY-BOUNDARY": 4,
+            "P-PUBLIC-BUSINESS-COUPLING": 4,
+            "P-ENTRY-CONTRACT": 3,
+            "P-LEAF-RESPONSIBILITY": 3,
+            "P-ROLE-MIXING": 2
+        },
+        "violationValues": [0, 1],
+        "requiresResponsibilityContract": true
     },
-    "overBudgetLogPenalty": {
-      "time": 20,
-      "space": 20
+    "compositeWeights": {
+        "scope": 0.45,
+        "complexity": 0.4,
+        "placement": 0.15
     },
-    "requiresBudget": true,
-    "verifiedSevereIssues": {
-      "nontermination": {
-        "deduction": 60,
-        "dimensionCap": 20,
-        "compositeCap": 40
-      },
-      "leak": {
-        "deduction": 60,
-        "dimensionCap": 20,
-        "compositeCap": 40
-      }
-    }
-  },
-  "placement": {
-    "weights": {
-      "P-DEPENDENCY-BOUNDARY": 4,
-      "P-PUBLIC-BUSINESS-COUPLING": 4,
-      "P-ENTRY-CONTRACT": 3,
-      "P-LEAF-RESPONSIBILITY": 3,
-      "P-ROLE-MIXING": 2
+    "unknownPolicy": "propagate-interval-no-complete-value",
+    "notApplicablePolicy": "reduced-scope-no-formal-grade",
+    "aggregation": "equal-owned-groups-then-files-then-modules",
+    "sourceWeights": {
+        "internal": 0.6,
+        "model": 0.4
     },
-    "violationValues": [
-      0,
-      1
-    ],
-    "requiresResponsibilityContract": true
-  },
-  "compositeWeights": {
-    "scope": 0.45,
-    "complexity": 0.4,
-    "placement": 0.15
-  },
-  "unknownPolicy": "propagate-interval-no-complete-value",
-  "notApplicablePolicy": "reduced-scope-no-formal-grade",
-  "aggregation": "equal-owned-groups-then-files-then-modules",
-  "sourceWeights": {
-    "internal": 0.6,
-    "model": 0.4
-  },
-  "sourceDisagreementThreshold": 15,
-  "gradeLowerBounds": {
-    "A": 90,
-    "B": 80,
-    "C": 65,
-    "D": 50,
-    "E": 0
-  },
-  "requireBothSourcesForGrade": true,
-  "displayDecimalPlaces": 2
+    "sourceDisagreementThreshold": 15,
+    "gradeLowerBounds": {
+        "A": 90,
+        "B": 80,
+        "C": 65,
+        "D": 50,
+        "E": 0
+    },
+    "requireBothSourcesForGrade": true,
+    "displayDecimalPlaces": 2
 }

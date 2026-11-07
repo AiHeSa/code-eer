@@ -1,136 +1,100 @@
 {
-  "modules": [
-    {
-      "id": "ast-native",
-      "root": "services/code-review/ast",
-      "kind": "public"
-    },
-    {
-      "id": "ast",
-      "root": "services/code-review/internal/ast",
-      "kind": "public"
-    },
-    {
-      "id": "capabilities",
-      "root": "services/code-review/internal/capabilities",
-      "kind": "public"
-    },
-    {
-      "id": "assessment",
-      "root": "services/code-review/internal/assessment",
-      "kind": "public"
-    },
-    {
-      "id": "scoring",
-      "root": "services/code-review/internal/scoring",
-      "kind": "public"
-    },
-    {
-      "id": "server",
-      "root": "services/server",
-      "kind": "business",
-      "entries": [
-        "services/server/index.ts"
-      ]
-    },
-    {
-      "id": "cli",
-      "root": "services/cli",
-      "kind": "business",
-      "entries": [
-        "services/cli/index.ts"
-      ]
-    },
-    {
-      "id": "scripts",
-      "root": "scripts",
-      "kind": "business"
-    },
-    {
-      "id": "tests",
-      "root": "tests",
-      "kind": "business"
-    }
-  ],
-  "externalPackages": [
-    "@types/node",
-    "@vue/compiler-dom",
-    "@vue/compiler-sfc",
-    "tsx",
-    "typescript",
-    "zod"
-  ],
-  "contracts": [
-    {
-      "moduleId": "ast-native",
-      "allowedDependencies": [
-        "ast"
-      ],
-      "allowExternal": true
-    },
-    {
-      "moduleId": "ast",
-      "allowedDependencies": [
-        "ast-native"
-      ],
-      "allowExternal": true
-    },
-    {
-      "moduleId": "capabilities",
-      "allowedDependencies": [],
-      "allowExternal": true
-    },
-    {
-      "moduleId": "assessment",
-      "allowedDependencies": [
-        "ast",
-        "ast-native",
-        "capabilities"
-      ],
-      "allowExternal": true
-    },
-    {
-      "moduleId": "scoring",
-      "allowedDependencies": [
-        "ast",
-        "assessment",
-        "capabilities",
-        "ast-native"
-      ],
-      "allowExternal": true
-    },
-    {
-      "moduleId": "server",
-      "allowedDependencies": [
-        "ast",
-        "assessment",
-        "scoring"
-      ],
-      "allowExternal": true
-    },
-    {
-      "moduleId": "cli",
-      "allowedDependencies": [
-        "ast"
-      ],
-      "allowExternal": true
-    },
-    {
-      "moduleId": "scripts",
-      "allowedDependencies": [
-        "capabilities",
-        "ast-native",
-        "ast"
-      ],
-      "allowExternal": true
-    },
-    {
-      "moduleId": "tests",
-      "allowedDependencies": [
-        "*"
-      ],
-      "allowExternal": true
-    }
-  ],
-  "budgets": []
+    "modules": [
+        {
+            "id": "ast-native",
+            "root": "services/code-review/ast",
+            "kind": "public"
+        },
+        {
+            "id": "ast",
+            "root": "services/code-review/internal/ast",
+            "kind": "public"
+        },
+        {
+            "id": "capabilities",
+            "root": "services/code-review/internal/capabilities",
+            "kind": "public"
+        },
+        {
+            "id": "assessment",
+            "root": "services/code-review/internal/assessment",
+            "kind": "public"
+        },
+        {
+            "id": "scoring",
+            "root": "services/code-review/internal/scoring",
+            "kind": "public"
+        },
+        {
+            "id": "server",
+            "root": "services/server",
+            "kind": "business",
+            "entries": ["services/server/index.ts"]
+        },
+        {
+            "id": "cli",
+            "root": "services/cli",
+            "kind": "business",
+            "entries": ["services/cli/index.ts"]
+        },
+        {
+            "id": "scripts",
+            "root": "scripts",
+            "kind": "business"
+        },
+        {
+            "id": "tests",
+            "root": "tests",
+            "kind": "business"
+        }
+    ],
+    "externalPackages": ["@types/node", "@vue/compiler-dom", "@vue/compiler-sfc", "tsx", "typescript", "zod"],
+    "contracts": [
+        {
+            "moduleId": "ast-native",
+            "allowedDependencies": ["ast"],
+            "allowExternal": true
+        },
+        {
+            "moduleId": "ast",
+            "allowedDependencies": ["ast-native"],
+            "allowExternal": true
+        },
+        {
+            "moduleId": "capabilities",
+            "allowedDependencies": [],
+            "allowExternal": true
+        },
+        {
+            "moduleId": "assessment",
+            "allowedDependencies": ["ast", "ast-native", "capabilities"],
+            "allowExternal": true
+        },
+        {
+            "moduleId": "scoring",
+            "allowedDependencies": ["ast", "assessment", "capabilities", "ast-native"],
+            "allowExternal": true
+        },
+        {
+            "moduleId": "server",
+            "allowedDependencies": ["ast", "assessment", "scoring"],
+            "allowExternal": true
+        },
+        {
+            "moduleId": "cli",
+            "allowedDependencies": ["ast"],
+            "allowExternal": true
+        },
+        {
+            "moduleId": "scripts",
+            "allowedDependencies": ["capabilities", "ast-native", "ast"],
+            "allowExternal": true
+        },
+        {
+            "moduleId": "tests",
+            "allowedDependencies": ["*"],
+            "allowExternal": true
+        }
+    ],
+    "budgets": []
 }

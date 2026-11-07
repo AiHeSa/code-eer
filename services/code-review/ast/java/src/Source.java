@@ -8,6 +8,7 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 
 final class Source {
+
     private final String text;
     private final java.util.List<Integer> lines = new java.util.ArrayList<>();
 
@@ -18,6 +19,7 @@ final class Source {
         while (matcher.find()) lines.add(matcher.end());
     }
 
+    // JavaParser 的末列是闭区间；公开结果使用 UTF-16 偏移的半开区间。
     int offset(Position position, boolean end) {
         if (position.line > lines.size()) return text.length();
         int index = lines.get(position.line - 1);
@@ -40,10 +42,13 @@ final class Source {
         var output = new JsonObject();
         output.addProperty("code", "SYNTAX_ERROR");
         output.addProperty("message", problem.getMessage());
-        JsonElement position = problem.getLocation().flatMap(range -> range.getBegin().getRange())
+        JsonElement position = problem
+            .getLocation()
+            .flatMap(range -> range.getBegin().getRange())
             .map(range -> (JsonElement) new com.google.gson.JsonPrimitive(offset(range.begin, false)))
             .orElse(JsonNull.INSTANCE);
-        output.add("start", position); output.add("end", position);
+        output.add("start", position);
+        output.add("end", position);
         return output;
     }
 }

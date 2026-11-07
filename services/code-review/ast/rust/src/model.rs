@@ -10,9 +10,17 @@ pub struct Extractor<'a> {
 
 impl<'a> Extractor<'a> {
     pub fn offset(&self, line: usize, column: usize) -> usize {
+        // 公开位置统一为 UTF-8 字节偏移，不能把字符列直接用于字符串切片。
         let mut lines = self.source.split_inclusive('\n');
         let preceding = lines.by_ref().take(line.saturating_sub(1)).map(str::len).sum::<usize>();
-        preceding + lines.next().unwrap_or_default().chars().take(column).map(char::len_utf8).sum::<usize>()
+        preceding
+            + lines
+                .next()
+                .unwrap_or_default()
+                .chars()
+                .take(column)
+                .map(char::len_utf8)
+                .sum::<usize>()
     }
 
     pub fn bounds(&self, span: Span) -> (usize, usize) {
@@ -35,8 +43,13 @@ impl<'a> Extractor<'a> {
         index
     }
 
-    pub fn metadata(&mut self, index: usize, attrs: &[syn::Attribute],
-        visibility: Option<&syn::Visibility>, generics: Option<&syn::Generics>) {
+    pub fn metadata(
+        &mut self,
+        index: usize,
+        attrs: &[syn::Attribute],
+        visibility: Option<&syn::Visibility>,
+        generics: Option<&syn::Generics>,
+    ) {
         self.nodes[index]["data"]["attributes"] = json!(attrs.iter().map(|a| self.text(a)).collect::<Vec<_>>());
         if let Some(value) = visibility {
             self.nodes[index]["data"]["visibility"] = json!(self.text(value));
@@ -46,8 +59,14 @@ impl<'a> Extractor<'a> {
         }
     }
 
-    pub fn callable(&mut self, kind: &str, native: &str, signature: &syn::Signature,
-        body: Option<&syn::Block>, span: Span) -> usize {
+    pub fn callable(
+        &mut self,
+        kind: &str,
+        native: &str,
+        signature: &syn::Signature,
+        body: Option<&syn::Block>,
+        span: Span,
+    ) -> usize {
         let index = self.emit(kind, native, Some(signature.ident.to_string()), span);
         let parameters: Vec<String> = signature.inputs.iter().map(|arg| self.text(arg)).collect();
         let returns = match &signature.output {
