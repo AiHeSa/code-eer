@@ -3,6 +3,7 @@ import { spawnSync } from 'node:child_process';
 import { API } from 'typescript/async';
 import { isFunctionLikeDeclaration } from 'typescript/ast';
 import { extname, resolve, delimiter } from 'node:path';
+import { existsSync } from 'node:fs';
 
 const git = spawnSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'], { encoding: 'utf8' });
 if (git.status !== 0) throw new Error(git.stderr);
@@ -10,10 +11,13 @@ const files = [...new Set(git.stdout.split('\0').filter(Boolean))];
 const violations = [];
 const root = process.cwd();
 const native = {
-  '.py': ['python3', ['services/code-review/ast/python/parser.py']],
+  '.py': [process.env.CODE_EER_PYTHON ?? (existsSync('.cache/toolchains/python/bin/python3')
+    ? '.cache/toolchains/python/bin/python3' : 'python3'), ['services/code-review/ast/python/parser.py']],
   '.go': ['.cache/bin/go-ast', []],
   '.rs': ['services/code-review/ast/rust/target/release/code-eer-rust-ast', []],
-  '.java': ['java', ['-cp', ['services/code-review/ast/java/build', '.cache/jars/*'].join(delimiter), 'eer.Main']],
+  '.java': [process.env.CODE_EER_JAVA ?? (existsSync('.cache/toolchains/java/Contents/Home/bin/java')
+    ? '.cache/toolchains/java/Contents/Home/bin/java' : 'java'),
+    ['-cp', ['services/code-review/ast/java/build', '.cache/jars/*'].join(delimiter), 'eer.Main']],
 };
 const lineCount = (source) => source.endsWith('\n') ? source.split('\n').length - 1 : source.split('\n').length;
 async function checkJavaScript(api, path, source) {

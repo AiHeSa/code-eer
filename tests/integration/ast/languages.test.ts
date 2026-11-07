@@ -17,7 +17,7 @@ for (const [language, path, name, type] of cases) {
     assert.ok(response.ok);
     const caps = capabilitiesSchema.parse(response.result);
     assert.equal(caps.available, true, JSON.stringify(caps.errors));
-    assert.ok(!caps.capabilities.includes('types'));
+    assert.ok(caps.capabilities.includes('types') && caps.capabilities.includes('symbols'));
     const result = await analyze(service, language, [path]);
     assert.equal(result.status, 'complete', JSON.stringify(result));
     const file = result.files[0]!;
@@ -45,11 +45,12 @@ for (const [language, file, source] of invalid) {
     });
   });
 }
-test('missing inputs and unsupported semantic capabilities are visible', async () => {
+test('missing inputs remain errors and semantic capabilities return real evidence', async () => {
   const missing = await analyze(service, 'python', ['missing.py']);
   assert.equal(missing.status, 'failed');
   assert.ok(missing.files[0]!.errors.length);
   const limited = await analyze(service, 'python', ['python/sample.py'], { capabilities: ['syntax', 'types'] });
-  assert.equal(limited.status, 'partial');
-  assert.ok(limited.files[0]!.skipped.some((item) => item.message === 'types'));
+  assert.equal(limited.status, 'complete', JSON.stringify(limited));
+  assert.ok(limited.files[0]!.executed.includes('types'));
+  assert.ok(limited.files[0]!.semantic!.references.some((item) => item.type !== null));
 });

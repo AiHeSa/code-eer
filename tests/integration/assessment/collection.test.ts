@@ -35,7 +35,7 @@ export function View() { const [value, setValue] = useState(0); return <div>{val
   }, 'View.tsx');
 });
 
-test('collection: native-language fallback supplies AST facts without inventing missing loops', async () => {
+test('collection: native syntax supplies real loops, nested declarations and calls', async () => {
   await withFiles({ 'sample.py': 'def outer(n):\n    def inner():\n        return n\n    for i in range(n):\n        inner()\n' }, async (root) => {
     const service = new AstService();
     try {
@@ -43,12 +43,13 @@ test('collection: native-language fallback supplies AST facts without inventing 
       assert.deepEqual(report.errors, []);
       assert.equal(report.files.length, 1);
       const file = report.files[0]!;
-      assert.equal(file.evidence.coverage.level, 'structure');
-      assert.equal(file.complexity.status, 'unsupported');
-      assert.equal(file.evidence.loops.length, 0);
+      assert.equal(file.evidence.coverage.level, 'syntax');
+      assert.equal(file.complexity.status, 'partial');
+      assert.equal(file.evidence.loops.length, 1);
       assert.ok(file.evidence.functions.find((item) => item.name === 'inner')?.parentFunctionId);
-      assert.equal(file.evidence.functions[0]!.immediate, null);
-      assert.ok(file.placement.functions.every((item) => item.role === 'unknown'));
+      assert.equal(file.evidence.functions[0]!.immediate, false);
+      assert.ok(file.evidence.declarations.some((item) => item.name === 'outer' && item.kind === 'function'));
+      assert.ok(file.evidence.calls.some((item) => item.callee === 'inner' && item.loopIds.length === 1));
     } finally { service.close(); }
   });
 });

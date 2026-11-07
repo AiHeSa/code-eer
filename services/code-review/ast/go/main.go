@@ -40,6 +40,12 @@ func main() {
 	if err := json.NewDecoder(os.Stdin).Decode(&input); err != nil {
 		panic(err)
 	}
+	if input.Semantic {
+		if err := json.NewEncoder(os.Stdout).Encode(analyzeSemantic(input)); err != nil {
+			panic(err)
+		}
+		return
+	}
 	if err := json.NewEncoder(os.Stdout).Encode(parse(input)); err != nil {
 		panic(err)
 	}

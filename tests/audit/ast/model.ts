@@ -11,7 +11,8 @@ export type Expectation =
   | { kind: 'diagnostics'; file: string; min: number }
   | { kind: 'framework'; file: string; value: 'react' | 'vue' }
   | { kind: 'absentFile'; file: string }
-  | { kind: 'executed'; capability: 'symbols' | 'types' };
+  | { kind: 'executed'; capability: 'symbols' | 'types' }
+  | { kind: 'semantic'; file: string; name: string; typeIncludes: string };
 
 export interface AuditCase {
   id: string; title: string; backend: Language; scope: 'baseline' | 'planned'; requirement: string;

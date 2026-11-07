@@ -4,6 +4,7 @@ import { spawnSync } from 'node:child_process';
 import { dirname, join, resolve } from 'node:path';
 import { homedir } from 'node:os';
 import { createRequire } from 'node:module';
+import { existsSync } from 'node:fs';
 
 const require = createRequire(import.meta.url);
 function command(executable, args) {
@@ -12,7 +13,8 @@ function command(executable, args) {
   return result.stdout.trim();
 }
 async function synSource() {
-  const registry = join(process.env.CARGO_HOME ?? join(homedir(), '.cargo'), 'registry/src');
+  const local = resolve('.cache/toolchains/cargo');
+  const registry = join(process.env.CARGO_HOME ?? (existsSync(local) ? local : join(homedir(), '.cargo')), 'registry/src');
   for (const directory of await readdir(registry)) {
     const path = join(registry, directory, 'syn-2.0.119/src/item.rs');
     try { await readFile(path); return path; } catch (error) { if (error.code !== 'ENOENT') throw error; }
@@ -32,8 +34,10 @@ async function javaSource() {
   return { path, url };
 }
 export async function corpusSources() {
-  const python = command(process.env.CODE_EER_PYTHON ?? 'python3', ['-c', 'import sysconfig; print(sysconfig.get_path("stdlib"))']);
-  const go = command('go', ['env', 'GOROOT']);
+  const localPython = resolve('.cache/toolchains/python/bin/python3'), localGo = resolve('.cache/toolchains/go/bin/go');
+  const python = command(process.env.CODE_EER_PYTHON ?? (existsSync(localPython) ? localPython : 'python3'),
+    ['-c', 'import sysconfig; print(sysconfig.get_path("stdlib"))']);
+  const go = command(process.env.CODE_EER_GO ?? (existsSync(localGo) ? localGo : 'go'), ['env', 'GOROOT']);
   const java = await javaSource();
   const ts = dirname(require.resolve('typescript/ast'));
   return [

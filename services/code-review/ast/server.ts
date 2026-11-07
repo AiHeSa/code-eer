@@ -10,7 +10,7 @@ if (language === 'js-ts') {
   const { projectFiles } = await import('./js-ts/project-files.js');
   serveParser({ language, parse: parseJavaScript, files: projectFiles, capabilities: async () => ({
     schemaVersion: VERSION, backend: language, version: tsVersion, runtime: process.version,
-    available: true, capabilities: ['syntax', 'structure', 'framework'], factTypes: [...factTypes],
+    available: true, capabilities: ['syntax', 'structure', 'framework', 'symbols', 'types'], factTypes: [...factTypes],
     frameworks: ['react', 'vue'], errors: [],
     coverage: coverageFor(language), syntax: syntaxFor(language, tsVersion),
     frameworkCoverage: { react: coverageFor(language, 'react'), vue: coverageFor(language, 'vue') },

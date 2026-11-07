@@ -12,14 +12,14 @@ const profiles: Record<Language, Omit<Coverage, 'projection'>> = {
     metadata: ['modifiers', 'typeParameters', 'heritage', 'declaration', 'clause', 'declarationId', 'moduleSystem', 'source', 'dynamic', 'value', 'spread'],
     limitations: ['Expressions and statements are retained through source ranges',
       'CommonJS names require direct globals and static property keys',
-      'Symbol, type and cross-file binding queries are unavailable', 'Dynamic eval and with scopes are unresolved',
+      'Symbol and type queries require the semantic feature', 'Dynamic eval and with scopes are unresolved',
       'Compiler target configures compilation and does not constrain accepted syntax'],
   },
   python: {
     nativeNodes: ['FunctionDef', 'AsyncFunctionDef', 'Lambda', 'ClassDef', 'TypeAlias', 'Import', 'ImportFrom'],
     metadata: ['positionalOnly', 'keywordOnly', 'parameterDetails', 'decorators', 'bases', 'keywords', 'typeParameters', 'typeComment', 'names', 'level'],
     limitations: ['Assignments, fields, expressions and statements have no independent facts',
-      'Scope, qualified-name, symbol and type queries are unavailable'],
+      'Fine scopes require assessment collection; symbols and types require Pyright semantics'],
   },
   java: {
     nativeNodes: ['MethodDeclaration', 'ConstructorDeclaration', 'CompactConstructorDeclaration', 'AnnotationMemberDeclaration',
@@ -27,19 +27,19 @@ const profiles: Record<Language, Omit<Coverage, 'projection'>> = {
       'ObjectCreationExpr(anonymous class)', 'EnumConstantDeclaration(class body)', 'ImportDeclaration', 'PackageDeclaration',
       'ModuleDeclaration', 'ModuleRequiresDirective', 'ModuleUsesDirective', 'ModuleExportsDirective', 'ModuleOpensDirective', 'ModuleProvidesDirective'],
     metadata: ['modifiers', 'annotations', 'typeParameters', 'throws', 'extends', 'implements', 'permits', 'components', 'static', 'wildcard', 'directive', 'declaration'],
-    limitations: ['Fields and initializer blocks have no independent facts', 'Classpath symbol and type queries are unavailable'],
+    limitations: ['Fields and initializer blocks have no independent structural facts', 'Classpath types require javac semantics and available dependencies'],
   },
   go: {
     nativeNodes: ['*ast.Ident(package)', '*ast.FuncDecl', '*ast.FuncLit', '*ast.TypeSpec', '*ast.ImportSpec', '*ast.Field(interface method)'],
     metadata: ['receiver', 'typeParameters', 'declaration', 'typeAlias', 'alias', 'positionUnavailable'],
-    limitations: ['ValueSpec and fields have no independent facts', 'Build constraints, package loading and type queries are unavailable'],
+    limitations: ['ValueSpec and fields have no independent structural facts', 'Active-build package and type queries require go/types semantics'],
   },
   rust: {
     nativeNodes: ['ItemFn', 'ImplItemFn', 'TraitItemFn', 'ItemImpl', 'ItemTrait', 'ItemStruct', 'ItemEnum', 'ItemType',
       'TraitItemType', 'ImplItemType', 'ItemUse', 'ItemExternCrate', 'ItemMod', 'ItemUnion', 'ExprClosure', 'ItemForeignMod', 'ForeignItemFn'],
     metadata: ['generics', 'attributes', 'visibility', 'alias', 'container', 'declaration'],
     limitations: ['Constants, statics, fields and variants have no independent facts',
-      'Macro expansion, cfg evaluation, Cargo project semantics, symbols and types are unavailable', 'Edition constraints are not enforced'],
+      'Cargo symbols and types require rust-analyzer semantics; build scripts and procedural macros are disabled', 'Structural parser does not enforce edition constraints'],
   },
 };
 export function coverageFor(language: Language, framework?: 'react' | 'vue' | null): Coverage {

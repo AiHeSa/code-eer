@@ -23,15 +23,19 @@ async function collect({ file, source }: CollectionInput): Promise<SyntaxEvidenc
     if (!['function', 'method', 'constructor'].includes(fact.type)) continue;
     const parentFunctionId = owner(fact.parentId);
     const scopeId = `scope:${located.id}`;
+    const bindingId = fact.name && fact.type === 'function' ? `binding:${located.id}` : null;
+    if (bindingId) result.declarations.push({ ...located, id: bindingId, name: fact.name!, kind: 'function',
+      scopeId: parentFunctionId ? `scope:${parentFunctionId}` : 'module', functionId: parentFunctionId,
+      initializer: null, exported: false });
     result.scopes.push({ id: scopeId, parentId: parentFunctionId ? `scope:${parentFunctionId}` : 'module',
       kind: 'function', range: fact.range });
-    result.functions.push({ ...located, name: fact.name, scopeId, bindingId: null,
+    result.functions.push({ ...located, name: fact.name, scopeId, bindingId,
       parentFunctionId, async: 'async' in fact && fact.async, generator: null,
-      immediate: null, hasBody: 'bodyRange' in fact && fact.bodyRange !== null });
+      immediate: bindingId ? false : null, hasBody: 'bodyRange' in fact && fact.bodyRange !== null });
   }
   result.coverage.limitations = ['Only selected AST declarations and module facts are available',
     'Variables, references, calls, loops, branches and allocations need a language syntax collector',
-    'Generator and immediate-invocation attributes are not evaluated'];
+    'Generator and anonymous immediate-invocation attributes are not evaluated'];
   return result;
 }
 

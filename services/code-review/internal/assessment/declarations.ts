@@ -15,7 +15,9 @@ function declare(context: ScriptContext, name: ts.Identifier, node: ts.Node, sta
   const exported = isExported(node) || ts.isVariableDeclaration(node) && ts.isVariableDeclarationList(node.parent)
     && ts.isVariableStatement(node.parent.parent) && isExported(node.parent.parent);
   const item = { ...location(context, name, 'binding'), name: name.text, scopeId,
-    functionId: state.functionId, kind, initializer: text(context, initializer), exported };
+    functionId: state.functionId, kind, initializer: text(context, initializer), exported,
+    storage: kind === 'member' ? ts.isPropertyDeclaration(node) && node.modifierFlags & ts.ModifierFlags.Static ? 'global' as const : 'instance' as const
+      : ['module', 'global', 'static-block'].includes(context.output.scopes.find((scope) => scope.id === scopeId)?.kind ?? '') ? 'global' as const : 'local' as const };
   context.names.add(name); context.bindings.set(name, item.id); context.output.declarations.push(item);
   return item.id;
 }

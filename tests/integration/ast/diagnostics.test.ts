@@ -26,15 +26,16 @@ for (const [language, name, source, code, range] of cases) {
       assert.equal(file.skipped[0]!.code, 'STRUCTURE_INCOMPLETE');
     });
   });
-  test(`${language}: missing files, unsupported semantics and unavailable worker`, async () => {
+  test(`${language}: missing files, partial compiler semantics and unavailable worker`, async () => {
     await withFiles({ [name]: source }, async (root) => {
       const missing = await analyze(service, language, [`missing-${name}`], { root });
       assert.equal(missing.status, 'failed');
       assert.equal(missing.files[0]!.errors.length, 1);
       const limited = await analyze(service, language, [name], { root, capabilities: ['symbols', 'types'] });
-      assert.equal(limited.status, 'failed');
-      assert.deepEqual(limited.files[0]!.executed, []);
-      assert.deepEqual(limited.files[0]!.skipped.map((item) => item.message), ['symbols', 'types']);
+      assert.equal(limited.status, 'partial');
+      assert.equal(limited.files[0]!.semantic!.status, 'partial');
+      assert.ok(limited.files[0]!.semantic!.diagnostics.length || limited.files[0]!.diagnostics.length);
+      assert.ok(!limited.files[0]!.skipped.some((item) => item.code === 'UNSUPPORTED_CAPABILITY'));
       const broken = new AstService({ [language]: { command: '/missing/code-eer-parser', args: [] } });
       try {
         const response = await broken.capabilities(language);

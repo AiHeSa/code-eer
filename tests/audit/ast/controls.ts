@@ -14,8 +14,9 @@ export const controls: AuditCase[] = inputs.map(([backend, file, source, type, n
   implementation: [],
 }));
 export const planned: AuditCase[] = inputs.map(([backend, file, source]) => ({
-  id: `SEMANTICS-${backend}`, title: `${backend} 类型与符号能力`, backend, scope: 'planned', requirement: '进一步接入的能力',
+  id: `SEMANTICS-${backend}`, title: `${backend} 类型与符号能力`, backend, scope: 'baseline', requirement: '原生语义查询验收',
   files: { [file]: source }, entry: [file], params: { capabilities: ['syntax', 'structure', 'symbols', 'types'] },
-  expects: [{ kind: 'executed', capability: 'symbols' }, { kind: 'executed', capability: 'types' }],
+  expects: [{ kind: 'executed', capability: 'symbols' }, { kind: 'executed', capability: 'types' },
+    { kind: 'semantic', file, name: 'value', typeIncludes: backend === 'js-ts' ? 'string' : backend === 'rust' ? 'i32' : 'int' }],
   implementation: ['services/code-review/ast/server.ts', 'services/code-review/ast/native-parsers.ts'],
 }));

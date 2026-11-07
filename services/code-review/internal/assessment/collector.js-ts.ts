@@ -18,7 +18,7 @@ async function script(api: API, input: CollectionInput, path: string, source: st
   const context = scriptContext(lease.sourceFile, input.source, offset, prefix);
   collectDeclarations(context); collectReferences(context); collectControlFlow(context);
   context.output.coverage = { level: 'syntax', complete: input.file.diagnostics.length === 0 && !input.file.errors.length
-    && !input.file.skipped.length, limitations: [...limitations, ...context.output.coverage.limitations] };
+    && !input.file.skipped.some((item) => !item.code.startsWith('SEMANTIC_')), limitations: [...limitations, ...context.output.coverage.limitations] };
   return context.output;
 }
 
@@ -35,7 +35,7 @@ async function collect(input: CollectionInput): Promise<SyntaxEvidence> {
   if (!path.endsWith('.vue')) return syntaxEvidenceSchema.parse(await script(api, input, path, input.source, 0, ''));
   const result = emptyEvidence();
   result.coverage = { level: 'syntax', complete: !input.file.diagnostics.length && !input.file.errors.length
-    && !input.file.skipped.length, limitations: [...limitations, 'Vue blocks have independent lexical scopes; template bindings are unresolved'] };
+    && !input.file.skipped.some((item) => !item.code.startsWith('SEMANTIC_')), limitations: [...limitations, 'Vue blocks have independent lexical scopes; template bindings are unresolved'] };
   const { descriptor, errors } = parse(input.source, { filename: path });
   result.coverage.complete &&= errors.length === 0;
   for (const block of [descriptor.script, descriptor.scriptSetup]) {

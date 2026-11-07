@@ -7,7 +7,10 @@ import { existsSync } from 'node:fs';
 const root = process.cwd();
 const base = join(root, 'services/code-review/ast');
 function run(command, args, cwd = root) {
-  const result = spawnSync(command, args, { cwd, stdio: 'inherit' });
+  const cargo = join(root, '.cache/toolchains/cargo'), rustup = join(root, '.cache/toolchains/rustup');
+  const env = { ...process.env, ...(existsSync(cargo) ? { CARGO_HOME: process.env.CARGO_HOME ?? cargo } : {}),
+    ...(existsSync(rustup) ? { RUSTUP_HOME: process.env.RUSTUP_HOME ?? rustup } : {}) };
+  const result = spawnSync(command, args, { cwd, stdio: 'inherit', env });
   if (result.error) throw result.error;
   if (result.status !== 0) throw new Error(`${command} exited ${result.status}`);
 }
@@ -29,7 +32,9 @@ async function buildJava() {
   const source = join(base, 'java/src');
   const files = (await readdir(source)).filter((file) => file.endsWith('.java')).map((file) => join(source, file));
   await mkdir(join(base, 'java/build'), { recursive: true });
-  run('javac', ['--release', '17', '-cp', join(root, '.cache/jars/*'), '-d', join(base, 'java/build'), ...files]);
+  const local = join(root, '.cache/toolchains/java/Contents/Home/bin/javac');
+  run(process.env.CODE_EER_JAVAC ?? (existsSync(local) ? local : 'javac'),
+    ['--release', '17', '-cp', join(root, '.cache/jars/*'), '-d', join(base, 'java/build'), ...files]);
 }
 const selected = process.argv.slice(2);
 for (const language of selected.length ? selected : ['go', 'rust', 'java']) {
@@ -38,7 +43,12 @@ for (const language of selected.length ? selected : ['go', 'rust', 'java']) {
     const localGo = join(root, '.cache/toolchains/go/bin/go');
     run(process.env.CODE_EER_GO ?? (existsSync(localGo) ? localGo : 'go'),
       ['build', '-o', join(root, '.cache/bin/go-ast'), '.'], join(base, 'go'));
-  } else if (language === 'rust') run('cargo', ['build', '--release', '--locked'], join(base, 'rust'));
+  } else if (language === 'rust') {
+    const local = join(root, '.cache/toolchains/cargo/bin/cargo');
+    const rustup = join(root, '.cache/toolchains/cargo/bin/rustup');
+    run(process.env.CODE_EER_RUSTUP ?? (existsSync(rustup) ? rustup : 'rustup'), ['component', 'add', 'rust-analyzer', 'rust-src']);
+    run(process.env.CODE_EER_CARGO ?? (existsSync(local) ? local : 'cargo'), ['build', '--release', '--locked'], join(base, 'rust'));
+  }
   else if (language === 'java') await buildJava();
   else throw new Error(`Unknown backend: ${language}`);
 }

@@ -7,6 +7,7 @@ import { discover, included, languageFor, readSource, safePath } from './paths.j
 import { normalize, selectFacts } from './normalize.js';
 import type { ParsedResult } from './raw.js';
 import { coverageFor, syntaxFor } from './coverage.js';
+import { addSemantics, prepareSemantics, closeSemantics } from './semantic.js';
 
 export interface Parser {
   language: Language;
@@ -25,6 +26,7 @@ async function analyzeFile(parser: Parser, path: string, params: AnalyzeParams):
     const input = await readSource(params.root, path);
     const raw = await parser.parse(input.path, input.source, params);
     const file = normalize(input.path, input.source, parser.language, raw);
+    await addSemantics(file, input.path, input.source, params);
     return [file, ...(raw.relatedFiles ?? [])].map((entry) => applySelection(entry, params));
   } catch (error) { return [fileFailure(path, parser.language, error)]; }
 }
@@ -37,7 +39,7 @@ function applySelection(file: FileResult, params: AnalyzeParams): FileResult {
   file.executed = file.executed.filter((item) => params.capabilities.includes(item));
   return file;
 }
-export async function analyze(parser: Parser, params: AnalyzeParams): Promise<Analysis> {
+async function analyzeProject(parser: Parser, params: AnalyzeParams): Promise<Analysis> {
   params = { ...params, root: await realpath(params.root) };
   const caps = await parser.capabilities();
   const result: Analysis = { schemaVersion: VERSION, backend: parser.language, version: caps.version,
@@ -52,6 +54,7 @@ export async function analyze(parser: Parser, params: AnalyzeParams): Promise<An
     targets = selection.files; result.skipped.push(...selection.skipped);
   } catch (error) { return { ...result, status: 'failed', errors: [{ code: error instanceof ProtocolError
     ? error.code : 'PROJECT_ERROR', message: String(error), range: null }] }; }
+  await prepareSemantics(parser.language, params, targets);
   for (const target of targets) {
     let path: string;
     try { path = await safePath(params.root, target); }
@@ -68,4 +71,8 @@ export async function analyze(parser: Parser, params: AnalyzeParams): Promise<An
     result.skipped.push({ code: 'NO_INPUT_FILES', message: 'No matching source files', range: null });
   }
   return result;
+}
+
+export async function analyze(parser: Parser, params: AnalyzeParams): Promise<Analysis> {
+  try { return await analyzeProject(parser, params); } finally { await closeSemantics(); }
 }

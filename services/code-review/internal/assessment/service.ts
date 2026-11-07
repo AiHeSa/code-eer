@@ -7,6 +7,10 @@ import { analysisSchema, type FileResult, type Language } from '../ast/schema.js
 import { readSource } from '../ast/paths.js';
 import collector from './collector.js';
 import scriptCollector from './collector.js-ts.js';
+import pythonCollector from './collector.python.js';
+import javaCollector from './collector.java.js';
+import goCollector from './collector.go.js';
+import rustCollector from './collector.rust.js';
 import { syntaxEvidenceSchema } from './model.js';
 import { assessmentConfigSchema } from './config.js';
 import { analyzeScope } from './scope.js';
@@ -19,21 +23,22 @@ async function collectFile(root: string, file: FileResult, config: ReturnType<ty
   const input = await readSource(root, fileURLToPath(file.uri));
   if (createHash('sha256').update(input.source).digest('hex') !== file.digest)
     throw new ProtocolError('SOURCE_CHANGED', 'Source changed after AST analysis; retry against one snapshot');
-  const capability = file.language === 'js-ts' ? scriptCollector : collector;
+  const capability = { 'js-ts': scriptCollector, python: pythonCollector, java: javaCollector, go: goCollector, rust: rustCollector }[file.language];
   const evidence = syntaxEvidenceSchema.parse(await capability.methods.collect({ file, source: input.source }));
-  return { uri: file.uri, language: file.language, digest: file.digest, astFacts: file.facts, evidence,
+  return { uri: file.uri, language: file.language, digest: file.digest, astFacts: file.facts, semantic: file.semantic ?? null, evidence,
     scope: analyzeScope(evidence), complexity: analyzeComplexity(evidence),
     placement: analyzePlacement(root, file, evidence, config), composite: { score: null, status: 'pending' as const } };
 }
 
 export async function collectAssessment(service: AstService, backend: Language, input: AnalyzeParams,
-  configuration: unknown = {}, options: { timeoutMs?: number; signal?: AbortSignal } = {}) {
+  configuration: unknown = {}, options: { timeoutMs?: number; signal?: AbortSignal; semantic?: boolean } = {}) {
   const config = assessmentConfigSchema.parse(configuration);
   const root = await realpath(input.root);
   const params = analyzeParamsSchema.parse({ ...input, root, capabilities: ['syntax', 'structure', 'framework'], factTypes: undefined });
   // Framework is requested only for the JS/TS backend to avoid manufacturing unsupported results.
   if (backend !== 'js-ts') params.capabilities = ['syntax', 'structure'];
   else if (!params.framework) params.capabilities = ['syntax', 'structure'];
+  if (options.semantic) params.capabilities.push('symbols', 'types');
   const response = await service.analyze(backend, params, options);
   if (!response.ok) throw new ProtocolError(response.error.code, response.error.message);
   const analysis = analysisSchema.parse(response.result);

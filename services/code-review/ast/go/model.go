@@ -6,8 +6,10 @@ import (
 )
 
 type Input struct {
-	Path   string `json:"path"`
-	Source string `json:"source"`
+	Path     string `json:"path"`
+	Source   string `json:"source"`
+	Root     string `json:"root"`
+	Semantic bool   `json:"semantic"`
 }
 type Node struct {
 	ID         string         `json:"id"`

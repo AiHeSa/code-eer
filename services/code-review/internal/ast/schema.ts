@@ -1,6 +1,9 @@
 import { z } from 'zod';
 import { extensionsSchema } from './extensions.js';
 import { coverageSchema, syntaxSchema } from './coverage-schema.js';
+import { rangeSchema } from './location.js';
+import { semanticSchema } from './semantic-schema.js';
+export { rangeSchema, positionSchema } from './location.js';
 
 export const VERSION = '1.0';
 export const languageSchema = z.enum(['js-ts', 'python', 'java', 'go', 'rust']);
@@ -8,10 +11,6 @@ export const factTypes = ['function', 'method', 'constructor', 'type', 'module',
   'import', 'export', 'component', 'templateElement', 'attribute', 'directive', 'binding'] as const;
 export const factTypeSchema = z.enum(factTypes);
 export const capabilitySchema = z.enum(['syntax', 'structure', 'symbols', 'types', 'framework']);
-export const positionSchema = z.strictObject({ line: z.int().nonnegative(), character: z.int().nonnegative() });
-export const rangeSchema = z.strictObject({ start: positionSchema, end: positionSchema }).refine(
-  ({ start, end }) => start.line < end.line || start.line === end.line && start.character <= end.character,
-  'Range end precedes start');
 export const issueSchema = z.strictObject({
   code: z.string(), message: z.string(), file: z.string().optional(),
   range: rangeSchema.nullable().default(null),
@@ -34,6 +33,7 @@ export const fileSchema = z.strictObject({
   coverage: coverageSchema, syntax: syntaxSchema,
   diagnostics: z.array(issueSchema.extend({ source: z.string(), severity: z.enum(['error', 'warning', 'info']) })),
   executed: z.array(capabilitySchema), skipped: z.array(issueSchema), errors: z.array(issueSchema),
+  semantic: semanticSchema.optional(),
 });
 export const analysisSchema = z.strictObject({
   schemaVersion: z.literal(VERSION), status: z.enum(['complete', 'partial', 'failed', 'cancelled']),
