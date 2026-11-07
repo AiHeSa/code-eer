@@ -146,6 +146,8 @@ not-applicable 的处理按策略声明；移除该项时同时标记 reduced-sc
 未评估的清单成员保留 unknown 区间。抽样结果只能标记 sample-scope，不能冒充仓库全量分数。
 
 综合分建议 `0.45S+0.40C+0.15P`，内部计算不提前舍入，展示统一保留两位小数。
+新增 [REQ-SCP-002](../../requirements/code-review/position-conditioned-weighting.md)：S/C 的生效评分需结合代码位置上下文加权，当前固定全局合成比例仍是 v0 基线。
+[v1 位置加权](position-weighting.md)已接入运行时：保留基础分，叶子 S 仅看链路深度，严格位置放大普通扣分并提高汇总重要性；多角色取严，未知角色保留包络。P 数值不参与乘法加权。
 严重约束同时保留 rawValue、policyCap 和最终 value；作用域和位置高分不能抹掉已证明严重风险。
 完整规则及数字样例见候选策略文档，当前参数还未标定。
 
