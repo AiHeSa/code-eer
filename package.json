@@ -17,6 +17,8 @@
     "test:assessment": "tsx --test tests/integration/assessment/*.test.ts",
     "test:scoring": "tsx --test tests/integration/scoring/*.test.ts",
     "check:inheritance": "node scripts/check-inheritance.mjs",
+    "prompts": "node scripts/prompts.mjs",
+    "test:prompts": "node --test tests/integration/prompts/*.test.mjs",
     "setup:hooks": "node scripts/install-hooks.mjs",
     "setup:backends": "node scripts/setup-backends.mjs",
     "check:limits": "node scripts/check-limits.mjs",

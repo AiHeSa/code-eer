@@ -1,18 +1,18 @@
 # Prompts
 
 面向被审查项目的质量规范及 Skill / Rule 生成源，采用双入口、两级路由、统一规则继承和静态预筛设计。
-当前已提供源文件与路由骨架；生成器、差分预筛器和 Harness 自动触发尚未接入。
+当前已提供规则源、构建器及 Codex／DSH 的项目级安装器；差分预筛器与 Harness 自动触发尚未接入。
 完整方案见[双入口与分层分发设计](../docs/technical-designs/2026-11-07/prompt-entry-routing.md)。
 
 ## 目录结构与当前状态
 
 - entries/：已提供 [inject.md](entries/inject.md) 与 [check.md](entries/check.md) 编排源，不是已安装的 Skill／Rule。
-- contracts/：已提供 [context.md](contracts/context.md)、[resolution.md](contracts/resolution.md)、[results.md](contracts/results.md) 和 [triggers.md](contracts/triggers.md)，约束后续生成器及评估器。
+- contracts/：已提供 [context.md](contracts/context.md)、[resolution.md](contracts/resolution.md)、[results.md](contracts/results.md) 和 [triggers.md](contracts/triggers.md)，约束构建器及后续评估器。
 - routing/：已提供 [catalog.json](routing/catalog.json) 和 7 个目标路由骨架；目标路由均为 pending-rules，不代表已完成对应语言审查。
 - requirements/：唯一规则正文来源；当前两条初始规则为[最小链路](requirements/scope/minimal-link.md)和[输入边界](requirements/placement/fail-fast-boundary.md)。后续类别及目标规则继续研究。
-- generators/：目录校验、目标组合、阶段投影和预算裁剪，待实现。
-- adapters/：各 Harness 的 Rule、Skill、Hook 与事件适配，待实现。
-- generated/：后续构建产物，目前为空。
+- generators/：目录校验、目标组合、阶段投影、安装／更新／卸载已实现；Token 计量与预算裁剪待实现。
+- adapters/：Codex 与 DSH 的 Skill／项目指引格式及发现根已适配，自动 Hook 待实现。
+- generated/：预留构建产物位置；使用 build --output 显式输出到新目录，不自动提交生成物。
 
 ## 规则组织
 
@@ -26,5 +26,16 @@
 2. 连续编码调试期间不主动插入检查；runtime 在一轮编辑结束后处理增量，postrun 核对约定范围。
 3. 预筛区分 triggered、clear、unknown；证据不足保留 partial，配置错误为 failed。clear 不等于语义审查通过。
 4. 只有全部适用候选 clear 且无延后项或覆盖限制才可静默结束；当前规则和目标覆盖仍不完整。
+
+## 安装
+
+```sh
+npm run prompts -- install --harness codex --project /path/to/project --targets ts,react
+npm run prompts -- install --harness codex --project /path/to/project --targets ts,react --apply
+```
+
+DSH 将 --harness 改为 dsh；两端共用 .agents/skills/，无需重复安装。
+默认只读预览，--apply 才写入；卸载使用 npm run prompts -- uninstall --project /path/to/project --apply。
+完整命令、宿主要求和限制见[安装说明](../docs/technical-designs/2026-11-07/prompt-installation.md)。
 
 需求见[双入口与分发](../docs/requirements/prompts/entry-routing.md)，修正及验证见[变更记录](../docs/changes/2026-11-07/prompt-entry-routing.md)。

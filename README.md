@@ -48,7 +48,7 @@ code-eer/
 
 `prompts/` 是项目自身的产品能力：维护代码质量审查要求，并生成供不同 Harness 使用的 Skills / Rules。要求源文件、生成工具、Harness 适配和生成产物分别存放。
 
-运行前注入与运行时／运行后检查的双入口、共享规则及渐进式分发见 [Prompts 设计与入口模板](docs/technical-designs/2026-11-07/prompt-entry-routing.md)。入口、契约、两级索引和两条初始规则已提供，生成器与自动检查待实现；导航见 [prompts/README.md](prompts/README.md)。
+运行前注入与运行时／运行后检查的双入口、共享规则及渐进式分发见 [Prompts 设计与入口模板](docs/technical-designs/2026-11-07/prompt-entry-routing.md)。入口、规则源、构建与 Codex／DSH 项目级安装已提供；命令及限制见[安装说明](docs/technical-designs/2026-11-07/prompt-installation.md)，自动预筛和 Hook 待实现。
 
 `.ai/` 用于存放开发本项目时使用的共享上下文、Skills 和 Rules。当前只预留目录；这是仓库内部的存放约定，各 Harness 的自动加载入口与配置后续按需接入。
 

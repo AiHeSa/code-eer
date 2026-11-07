@@ -1,7 +1,7 @@
 # Prompts 双入口、低干扰边界与语言／框架分层分发设计
 
 - 日期：2026-11-07
-- 状态：源文件与索引骨架已提供，自动加载与预筛待实现。
+- 状态：源文件、索引、构建与项目安装已实现；自动预筛与 Hook 待实现，见[安装说明](prompt-installation.md)。
 - 需求：[双入口与分层分发](../../requirements/prompts/entry-routing.md)
 - 记录：[修正与验证](../../changes/2026-11-07/prompt-entry-routing.md)
 - 基础：[能力继承](../2026-11-06/capability-routing.md)、[抗急性劣化信号](anti-degradation-signals.md)
@@ -13,7 +13,7 @@
 入口负责编排，requirements 是质量要求的唯一正文来源，公共输出及分发约定放在 contracts。
 
 构建期处理静态来源和可预生成的阶段资源；本地运行时依据任务、目标及当前快照选择有效资源。
-Skill／Rule／Hook 包装、实际 Token 计量、差分计算和自动调用由后续生成器及适配器实现。
+Skill／项目指引包装与安装已实现；实际 Token 计量、差分计算及自动 Hook 后续实现。
 源 Markdown 中的流程描述和链接不等于已安装的自动触发器。
 
 ## 2. 当前目录
@@ -42,9 +42,9 @@ prompts/
 ├── requirements/
 │   ├── scope/minimal-link.md
 │   └── placement/fail-fast-boundary.md
-├── generators/                       # 待实现
-├── adapters/                         # 待实现
-└── generated/                        # 暂无可安装产物
+├── generators/                       # 校验、继承、投影、构建与安装
+├── adapters/                         # Codex／DSH 格式元数据
+└── generated/                        # 预留；产物由 build --output 写入新目录
 ```
 
 目标规则继续按职责放入 requirements/<category>/。
@@ -118,7 +118,7 @@ extends: ./render-purity.md
 按通用 → 语言 → 框架组合，整段替换同名条目，缺项沿用上一层。
 语言层优先精确专项，缺失时才回退 js-ts 专项；共享路由不自动叠加两个语言专项。
 多框架冲突须显式优先序；不以加载顺序作为规则间隐式优先级。
-现有 resolveDocument 仅接收一个专项，多层合并仍需后续生成器实现并逐专项对根校验。
+现有 resolveDocument 仅接收一个专项；构建器现已逐专项对根校验并按条目实现多层组合。
 
 ## 5. 入口及投影
 
@@ -167,12 +167,12 @@ unknown 和未覆盖目标导致 partial；complete 表示约定流程执行完�
 主上下文只展示问题及必要限制；partial／failed 不伪装成全部通过或用静默掩盖。
 
 源码、依赖证据、目标、规则或分析器版本变化使关联结果失效，不能复用旧快照结论。
-后续适配器分别包装 eer-inject 与 eer-check，按 Harness 资源访问限制打包投影和来源映射。
+适配器现已分别包装 eer-inject 与 eer-check，按自包含 Skill 打包投影和来源映射。
 实际 Hook、读写缓存与自动调用仍待实现；不支持的能力须声明，不增加宿主不存在的工具要求。
 
 ## 8. 当前验证与后续工作
 
 当前检查源文件链接、JSON 索引、目标映射、规则引用、阶段／依赖／信号及 Markdown 条目格式。
 既有继承校验只覆盖识别出的文件族，不证明路由和独立根文档已经受控。
-后续实现目录校验器、多层合并、Token 计量、三态预筛器及 Harness 适配后，再验证运行行为。
+目录校验、多层组合及 Skill 安装已有集成验证；后续补 Token 计量、三态预筛器和自动事件，再验证自动闭环。
 尚未实现差分检测与自动触发，不能以本次结构校验代替运行验收。

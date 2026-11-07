@@ -1,7 +1,7 @@
 # 提示词双入口、低干扰边界与分层分发需求
 
 - 日期：2026-11-07
-- 状态：入口、契约、两级索引及两条初始通用规则已提供；生成器、差分预筛器和 Harness 加载器待实现。
+- 状态：入口、契约、两级索引及两条初始规则已提供；构建与项目安装见[安装要求](harness-installation.md)，自动预筛和 Hook 待实现。
 - 方案：[双入口与分层分发设计](../../technical-designs/2026-11-07/prompt-entry-routing.md)
 - 记录：[修正与验证](../../changes/2026-11-07/prompt-entry-routing.md)
 - 关联：[抗急性劣化需求](../code-review/evolutionary-resilience.md)
