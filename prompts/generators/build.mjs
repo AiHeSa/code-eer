@@ -2,7 +2,8 @@ import codex from '../adapters/codex/index.mjs';
 import dsh from '../adapters/dsh/index.mjs';
 import { digest } from './files.mjs';
 import { loadCatalog } from './catalog.mjs';
-import { loadDocuments, profiles, resolveRule, entryBody } from './resolve.mjs';
+import { loadDocuments } from './resolve.mjs';
+import { projectStage } from './project.mjs';
 
 export const adapters = { codex, dsh };
 const stages = ['inject', 'check'];
@@ -14,42 +15,31 @@ const descriptions = {
 export async function buildBundle(repository, { harness, targets } = {}) {
   if (!adapters[harness]) throw new Error(`Unsupported harness: ${harness}`);
   const selection = await loadCatalog(repository, targets);
-  const documents = await loadDocuments(selection), variants = profiles(selection);
-  const files = new Map();
+  const documents = await loadDocuments(selection);
+  const files = new Map(), projections = {};
   for (const stage of stages) {
     const root = `${adapters[harness].skillRoot}/eer-${stage}`;
-    files.set(`${root}/SKILL.md`, skill(stage, variants));
-    for (const profile of variants) files.set(`${root}/references/${profile.id}.md`, renderProfile(stage, profile, selection, documents));
+    const projected = projectStage(stage, selection, documents);
+    files.set(`${root}/SKILL.md`, skill(stage, projected.routes));
+    for (const [name, text] of projected.resources) files.set(`${root}/references/${name}.md`, text);
+    projections[stage] = { default: 'common', routes: projected.routes, origins: projected.origins };
   }
   const manifest = await provenance(selection, harness, files);
+  manifest.projections = projections;
   files.set('.code-eer/prompts/bundle.json', JSON.stringify(manifest, null, 2) + '\n');
   return { files, manifest, guidance: guidance(), adapter: adapters[harness] };
 }
 
-function skill(stage, variants) {
+function skill(stage, routes) {
   const action = stage === 'inject'
-    ? 'Before editing source code, select the profile below and apply its conditions and constraints together. If scope changes, select again.'
+    ? 'Before editing source code, apply the guidance with its conditions and exceptions. Reconsider applicability when scope changes.'
     : 'Review the current diff and evidence after a meaningful edit batch or before delivery. Default to postrun; runtime covers affected objects.';
   return `---\nname: eer-${stage}\ndescription: ${descriptions[stage]}\n---\n# EER ${stage}\n\n${action}\n\n`
-    + 'Select exactly one profile for each code object using its language and framework. Use a language-only profile without a known framework; use common for unknown targets. Do not apply one target to the whole repository.\n\n'
-    + variants.map((profile) => `- ${profile.language ?? 'unknown language'} / ${profile.framework ?? 'no known framework'}: [guidance](references/${profile.id}.md)`).join('\n')
-    + '\n\nRead only the matching profile. Multiple frameworks on one object require explicit precedence; do not silently combine profiles. Missing targets and pending target rules limit coverage.\n\n'
+    + 'Read [common guidance](references/common.md). Omitted targets use this default.\n\n'
+    + (routes.length ? 'For each code object, select at most one override: exact language/framework pair, then framework, then language. Read common first; replace only named entries and inherit missing entries. Do not combine multiple framework overrides without explicit precedence.\n\n'
+      + routes.map((profile) => `- ${profile.language ?? 'any language'} / ${profile.framework ?? 'no specific framework'}: [${profile.reference}](references/${profile.reference}.md)`).join('\n') + '\n\n'
+      : 'No target-specific overrides are currently defined for this stage.\n\n')
     + (stage === 'check' ? 'This bundle has no automatic delta prefilter. Missing baselines, unresolved calls, or unavailable evidence remain unknown/partial; do not report a full pass. A structural signal is a review candidate, not proof of a violation. Report confirmed issues and necessary limitations concisely. Review does not authorize unrelated edits.\n' : 'Retain necessary applicability conditions and exceptions. Token budget has not been measured; never truncate conditions to fit a budget.\n');
-}
-
-function renderProfile(stage, profile, selection, documents) {
-  const keys = stage === 'inject' ? ['applicability', 'inject'] : ['applicability', 'check', 'evidence'];
-  const content = [`# EER ${stage}: ${profile.id}`, 'Advisory source guidance; target rules and automatic prefilter are incomplete.'];
-  const selected = selection.rules.filter((rule) => rule.phases.includes(stage))
-    .map((rule) => resolveRule(rule, documents, profile)).filter(Boolean);
-  const available = new Set(selected.map(({ rule }) => rule.id));
-  for (const resolved of selected) {
-    const { rule } = resolved;
-    if (rule.requires.some((id) => !available.has(id))) throw new Error(`Dependency outside profile ${profile.id}: ${rule.id}`);
-    content.push(`## ${rule.id}`, ...keys.map((key) => `### ${key}\n${entryBody(resolved.entries, key)}`));
-    content.push(`Source chain: ${resolved.chain.join(' → ')}`);
-  }
-  return content.join('\n\n') + '\n';
 }
 
 async function provenance(selection, harness, files) {

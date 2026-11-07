@@ -23,6 +23,14 @@ async function editCatalog(root, edit) {
   await writeFile(path, JSON.stringify(catalog));
 }
 
+function reference(bundle, stage, language, framework = null) {
+  const { routes } = bundle.manifest.projections[stage];
+  const match = routes.find((row) => row.language === language && row.framework === framework)
+    ?? routes.find((row) => row.language === null && row.framework === framework)
+    ?? routes.find((row) => row.language === language && row.framework === null);
+  return bundle.files.get(`.agents/skills/eer-${stage}/references/${match?.reference ?? 'common'}.md`);
+}
+
 test('Codex and DSH share self-contained skills; builds are deterministic and advisory', async () => {
   const a = await buildBundle(repository, { harness: 'codex', targets: ['ts', 'react'] });
   const b = await buildBundle(repository, { harness: 'codex', targets: ['react', 'ts'] });
@@ -38,10 +46,15 @@ test('Codex and DSH share self-contained skills; builds are deterministic and ad
     for (const match of content.matchAll(/\]\((references\/[^)]+)\)/g))
       assert.ok(a.files.has(`${dirname(name)}/${match[1]}`), `Missing packaged resource ${match[1]}`);
   }
-  const injection = a.files.get('.agents/skills/eer-inject/references/ts-react.md');
+  const injection = reference(a, 'inject', 'ts', 'react');
   assert.ok(injection.includes('文件大小约束') || injection.includes('文件大小'));
   assert.ok(injection.includes('applicability'));
   assert.ok(!injection.includes('### check'));
+  for (const stage of ['inject', 'check']) {
+    assert.deepEqual([...a.files.keys()].filter((name) => name.startsWith(`.agents/skills/eer-${stage}/references/`)),
+      [`.agents/skills/eer-${stage}/references/common.md`]);
+    assert.deepEqual(a.manifest.projections[stage].routes, []);
+  }
 });
 
 test('language and framework overrides preserve missing entries and stay isolated per object profile', async (t) => {
@@ -52,13 +65,14 @@ test('language and framework overrides preserve missing entries and stay isolate
     ts: 'requirements/scope/minimal-link.ts.md', react: 'requirements/scope/minimal-link.react.md',
   }; });
   const bundle = await buildBundle(root, { harness: 'codex', targets: ['ts', 'react', 'java'] });
-  const profile = (stage, name) => bundle.files.get(`.agents/skills/eer-${stage}/references/${name}.md`);
-  assert.match(profile('inject', 'ts'), /TS constraint/);
-  assert.match(profile('inject', 'ts-react'), /React constraint/);
-  assert.doesNotMatch(profile('inject', 'ts-react'), /TS constraint/);
-  assert.match(profile('check', 'ts-react'), /TS evidence/);
-  assert.doesNotMatch(profile('inject', 'java'), /TS constraint|React constraint/);
-  assert.match(profile('inject', 'ts-react'), /当前职责边界/);
+  assert.match(reference(bundle, 'inject', 'ts'), /TS constraint/);
+  assert.match(reference(bundle, 'inject', 'ts', 'react'), /React constraint/);
+  assert.doesNotMatch(reference(bundle, 'inject', 'ts', 'react'), /TS constraint/);
+  assert.match(reference(bundle, 'check', 'ts', 'react'), /TS evidence/);
+  assert.doesNotMatch(reference(bundle, 'inject', 'java'), /TS constraint|React constraint/);
+  assert.match(reference(bundle, 'inject', 'java'), /当前职责边界/);
+  assert.doesNotMatch(reference(bundle, 'inject', 'ts'), /### applicability|placement-fail-fast/);
+  assert.ok(!bundle.files.has('.agents/skills/eer-inject/references/ts-react.md'));
 });
 
 test('invalid targets, duplicate IDs, missing sources, cycles and unknown signals fail generation', async (t) => {
@@ -97,8 +111,41 @@ test('target routers are loaded only when selected and their rules stay out of u
   const ts = await buildBundle(root, { harness: 'codex', targets: ['ts'] });
   assert.ok(!Object.keys(ts.manifest.sources).includes('prompts/requirements/framework/hook-boundary.md'));
   const react = await buildBundle(root, { harness: 'codex', targets: ['ts', 'react'] });
-  assert.doesNotMatch(react.files.get('.agents/skills/eer-inject/references/ts.md'), /ReactOnlyConstraint/);
-  assert.match(react.files.get('.agents/skills/eer-inject/references/ts-react.md'), /ReactOnlyConstraint/);
+  assert.doesNotMatch(reference(react, 'inject', 'ts'), /ReactOnlyConstraint/);
+  assert.match(reference(react, 'inject', 'ts', 'react'), /ReactOnlyConstraint/);
   await editCatalog(root, (catalog) => { catalog.commonRules[0].requires = ['react-hook-boundary']; });
   await assert.rejects(buildBundle(root, { harness: 'codex', targets: ['ts', 'react'] }), /Dependency outside profile/);
+});
+
+test('equal overrides and changes outside the current phase do not create redundant resources', async (t) => {
+  const root = await fixture(t), folder = join(root, 'prompts/requirements/scope');
+  const common = await readFile(join(folder, 'minimal-link.md'), 'utf8');
+  const injection = common.match(/## inject\n([\s\S]*?)\n## check/)[1].trim();
+  await writeFile(join(folder, 'minimal-link.ts.md'), `---\nextends: ./minimal-link.md\n---\n## inject\n${injection}\n## evidence\nTS-only evidence\n`);
+  await writeFile(join(folder, 'minimal-link.react.md'), '---\nextends: ./minimal-link.md\n---\n# Empty override\n');
+  await editCatalog(root, (c) => { c.commonRules[0].variants = {
+    ts: 'requirements/scope/minimal-link.ts.md', react: 'requirements/scope/minimal-link.react.md',
+  }; });
+  const bundle = await buildBundle(root, { harness: 'codex', targets: ['ts', 'react'] });
+  assert.deepEqual(bundle.manifest.projections.inject.routes, []);
+  assert.ok(!bundle.files.has('.agents/skills/eer-inject/references/ts.md'));
+  assert.ok(!bundle.files.has('.agents/skills/eer-check/references/react.md'));
+  assert.match(reference(bundle, 'check', 'ts', 'react'), /TS-only evidence/);
+  assert.doesNotMatch(reference(bundle, 'check', 'ts'), /### applicability|### check/);
+});
+
+test('a framework that restores the default cancels a language override without writing a duplicate default', async (t) => {
+  const root = await fixture(t), folder = join(root, 'prompts/requirements/scope');
+  const common = await readFile(join(folder, 'minimal-link.md'), 'utf8');
+  const injection = common.match(/## inject\n([\s\S]*?)\n## check/)[1].trim();
+  await writeFile(join(folder, 'minimal-link.ts.md'), '---\nextends: ./minimal-link.md\n---\n## inject\nTS instruction\n');
+  await writeFile(join(folder, 'minimal-link.react.md'), `---\nextends: ./minimal-link.md\n---\n## inject\n${injection}\n`);
+  await editCatalog(root, (c) => { c.commonRules[0].variants = {
+    ts: 'requirements/scope/minimal-link.ts.md', react: 'requirements/scope/minimal-link.react.md',
+  }; });
+  const bundle = await buildBundle(root, { harness: 'codex', targets: ['ts', 'react'] });
+  assert.match(reference(bundle, 'inject', 'ts'), /TS instruction/);
+  assert.doesNotMatch(reference(bundle, 'inject', 'ts', 'react'), /TS instruction/);
+  assert.equal(reference(bundle, 'inject', 'ts', 'react'), reference(bundle, 'inject', null));
+  assert.ok(!bundle.files.has('.agents/skills/eer-inject/references/ts-react.md'));
 });

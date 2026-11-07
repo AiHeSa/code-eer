@@ -28,10 +28,10 @@ DSH 核查来自本机 DeepSeek Harness.app 内 app.asar 中的第一方包 READ
 ├── .agents/skills/
 │   ├── eer-inject/
 │   │   ├── SKILL.md
-│   │   └── references/             # 按目标预组合的条件与注入指令
+│   │   └── references/             # common.md + 确有差异的目标条目
 │   └── eer-check/
 │       ├── SKILL.md
-│       └── references/             # 按目标预组合的检查与证据要求
+│       └── references/             # common.md + 当前阶段检查差异
 └── .code-eer/prompts/
     ├── bundle.json                 # 来源／产物摘要、目标及覆盖限制
     └── install.json                # 受管文件哈希与可撤回的 AGENTS 块
@@ -76,12 +76,16 @@ build 的 --output 目录必须是新目录，避免覆盖任何既有构建或�
 ## 4. 分发、投影与调用
 
 构建器读取所选目标的两级路由，校验 ID、阶段、信号、依赖与专项关系。
-为通用、各语言、各框架及语言／框架组合预生成 profile，避免模型解析 JSON 或手动组合 extends。
-每个 Skill 仅列出可用 profile 链接；调用时按当前代码对象读取一个资源，不把单个框架套用到全仓。
+构建期组合候选目标，只在当前阶段正文与默认不同的情况下输出专项资源；不为每种目标或组合创建占位副本。
+common.md 保存完整默认要求，专项只保存发生变化的条目；标题、来源链及其他阶段的变更不触发复制。
+相同差异共用一个文件。入口只列出必要路由，优先精确组合、再框架、再语言，其余回退 common。
+调用时先读 common，再按对象读取至多一个命中专项，覆盖同名条目并继承缺项，避免把单一框架套用到全仓。
 语言目标优先精确专项，缺失时回退 js-ts；框架整段覆盖其显式条目，缺项沿用已选语言／通用内容。
 没有目标信息时读 common，并声明覆盖限制；多框架同时作用同一对象时不静默组合。
 
-inject 资源保留完整 applicability 与 inject；check 资源保留 applicability、check、evidence。
+inject 的有效内容为 applicability 与 inject；check 为 applicability、check、evidence，均由默认加专项差异合成。
+语言／框架没有专项规则时，两个 Skill 的 references/ 均仅有 common.md；证据条目只变化时，仅影响 check 资源。
+来源链保存在构建清单的 projections 中，不因来源路径不同而复制相同规则正文。
 没有静态预筛器时，eer-check 执行建议式审阅；缺基线或语义证据时保留 unknown／partial，不伪造静态通过结论。
 当前没有实际模型 Token 计量和预算裁剪，bundle.json 明确 tokenBudget.status=unverified，不宣称满足 200 Tokens。
 

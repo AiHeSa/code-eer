@@ -19,6 +19,8 @@
 通用与目标路由只决定何时加载；正文统一为 requirements/<category>/xx.md 和同目录 xx.<target>.md。
 专项声明 extends: ./xx.md，二级标题取自根文件；仅适用某目标的规则也定义完整根契约并限定目标。
 不以目标目录下的独立根规则绕开仓库继承要求；目标标识以 config/capability-targets.json 为准。
+生成产物始终保留 common.md，只为当前阶段存在实际差异的目标输出专项条目；同默认内容相同就不生成文件。
+当前没有语言／框架专项正文，因此两个 Skill 的 references/ 都只有 common.md，不再枚举语言和框架副本。
 
 ## 核心运行边界
 

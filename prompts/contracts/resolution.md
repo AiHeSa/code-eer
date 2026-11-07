@@ -35,6 +35,9 @@ inject 将 applicability 的必要条件、例外和 inject 作为完整单元�
 通用预算为 200 Tokens，目标附加预算由适配器指定；用目标模型计量方式，不把字数当 Token 数。
 超预算按依赖顺序选择完整单元，其余记 deferred 和 partial；预算未配置时不得宣称验证通过。
 check 读取 applicability、check、evidence；入口不复制具体质量规则。
+始终生成 common.md；只在当前阶段的有效正文有差异时生成专项资源，不为已登记目标创建占位文件。
+专项资源只包含相对 common 的变化条目；调用时先读 common，再按命中专项覆盖同名条目，缺项继承。
+标题、来源链或其他阶段的变化不构成当前阶段正文差异；有效内容相同的组合共用资源，未列出目标回退默认。
 
 ## prefilter
 checkTrigger 使用结构化 any，包含一个或多个信号 ID；定义见[触发器契约](triggers.md)。

@@ -46,7 +46,9 @@ test('uninstall retains instructions added outside the managed block and removes
 
 test('updates remove stale managed profiles, retain extra user files and support switching harnesses', async (t) => {
   const root = await workspace(t);
-  await installBundle(root, bundle, { apply: true });
+  const legacyFiles = new Map(bundle.files);
+  legacyFiles.set('.agents/skills/eer-inject/references/ts-react.md', bundle.files.get('.agents/skills/eer-inject/references/common.md'));
+  await installBundle(root, { ...bundle, files: legacyFiles }, { apply: true });
   const extra = join(root, '.agents/skills/eer-inject/user-notes.txt'); await writeFile(extra, 'User notes');
   const smaller = await buildBundle(repository, { harness: 'dsh', targets: [] });
   await installBundle(root, smaller, { apply: true });
