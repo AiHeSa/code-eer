@@ -1,25 +1,20 @@
-import { API, SymbolFlags, type Project, type Symbol as TSymbol } from 'typescript/async';
+import { API, JsxEmit, type Project } from 'typescript/async';
 import * as ts from 'typescript/ast';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { safePath } from './paths.js';
-import type { AnalyzeParams } from './protocol.js';
+import { ProtocolError, type AnalyzeParams } from './protocol.js';
 import { semanticId, type SemanticResult, type SemanticLocation } from './semantic-schema.js';
 import { sourceLocator } from './tree.js';
 import { serverFS, createFileSystemLayer } from 'typescript/fs';
 import { existsSync } from 'node:fs';
+import { typescriptDefinition } from './semantic-typescript-location.js';
+import { reactSemantics } from './semantic-react.js';
+import { tsVersion } from '../../ast/js-ts/parser.js';
 
-async function definition(symbol: TSymbol, project: Project): Promise<SemanticLocation | null> {
-    if (symbol.flags & SymbolFlags.Alias) symbol = await project.checker.getAliasedSymbol(symbol);
-    const declaration = await (symbol.valueDeclaration ?? symbol.declarations[0])?.resolve(project);
-    if (!declaration) return null;
-    const file = declaration.getSourceFile(),
-        name = 'name' in declaration ? (declaration.name as ts.Node | undefined) : undefined;
-    const node = name && typeof name.getStart === 'function' ? name : declaration;
-    return { uri: pathToFileURL(file.fileName).href, range: sourceLocator(file.text)(node.getStart(file), node.end) };
-}
+type Inspect = (file: ts.SourceFile, result: SemanticResult) => void;
 
-async function query(project: Project, path: string): Promise<SemanticResult> {
+async function query(project: Project, path: string, framework?: 'react' | 'vue' | null, inspect?: Inspect) {
     const file = await project.program.getSourceFile(path);
     if (!file) throw new Error(`Semantic compiler did not load ${path}`);
     const nodes: ts.Identifier[] = [];
@@ -35,7 +30,7 @@ async function query(project: Project, path: string): Promise<SemanticResult> {
     ]);
     const result: SemanticResult = {
         provider: 'typescript/Checker',
-        version: '7.1.0-beta',
+        version: tsVersion,
         status: diagnostics.some((item) => item.category === 1) ? 'partial' : 'complete',
         symbols: [],
         references: [],
@@ -52,7 +47,7 @@ async function query(project: Project, path: string): Promise<SemanticResult> {
     for (const [index, node] of nodes.entries()) {
         const symbol = symbols[index],
             type = types[index]!;
-        if (symbol && !definitions.has(symbol.id)) definitions.set(symbol.id, definition(symbol, project));
+        if (symbol && !definitions.has(symbol.id)) definitions.set(symbol.id, typescriptDefinition(symbol, project));
         if (!typeNames.has(type.id)) typeNames.set(type.id, project.checker.typeToString(type));
         const target = symbol ? await definitions.get(symbol.id)! : null,
             range = locate(node.getStart(file), node.end);
@@ -80,13 +75,19 @@ async function query(project: Project, path: string): Promise<SemanticResult> {
                 type: text,
             });
     }
+    if (framework === 'react') result.framework = await reactSemantics(file, project);
+    inspect?.(file, result);
     return result;
 }
 
-export async function typescriptSemantics(path: string, params: AnalyzeParams): Promise<SemanticResult> {
+export async function typescriptSemantics(
+    path: string,
+    params: AnalyzeParams,
+    framework?: 'react' | 'vue' | null,
+): Promise<SemanticResult> {
     const session = await createTypescriptSession(params, [path]);
     try {
-        return await session.query(path);
+        return await session.query(path, framework);
     } finally {
         await session.close();
     }
@@ -110,27 +111,46 @@ export async function createTypescriptSession(
             removeFile: serverFS.noop,
         },
     });
-    const configPath =
-        params.config.tsconfig ?? (existsSync(resolve(params.root, 'tsconfig.json')) ? 'tsconfig.json' : undefined);
-    const config = configPath
-        ? await api.parseConfigFile(await safePath(params.root, resolve(params.root, configPath)))
-        : null;
-    const snapshot = await api.createSnapshot({
-        ...(virtual.length ? { fileSystem: createFileSystemLayer(virtual) } : {}),
-        createPrograms: [
-            {
-                rootFiles: config ? [...new Set([...config.fileNames, ...paths])] : paths,
-                compilerOptions: { ...config?.options, allowJs: true, checkJs: true, noEmit: true, skipLibCheck: true },
-            },
-        ],
-    });
+    let snapshot;
+    try {
+        const configPath =
+            params.config.tsconfig ?? (existsSync(resolve(params.root, 'tsconfig.json')) ? 'tsconfig.json' : undefined);
+        const config = configPath
+            ? await api.parseConfigFile(await safePath(params.root, resolve(params.root, configPath)))
+            : null;
+        const errors = config?.errors.filter((error) => error.code !== 18003) ?? [];
+        if (errors.length) throw new ProtocolError('TS_CONFIG_ERROR', errors.map((error) => error.text).join('\n'));
+        snapshot = await api.createSnapshot({
+            ...(virtual.length ? { fileSystem: createFileSystemLayer(virtual) } : {}),
+            createPrograms: [
+                {
+                    rootFiles: config ? [...new Set([...config.fileNames, ...paths])] : paths,
+                    compilerOptions: {
+                        jsx: JsxEmit.Preserve,
+                        ...config?.options,
+                        allowJs: true,
+                        checkJs: true,
+                        noEmit: true,
+                        skipLibCheck: true,
+                    },
+                },
+            ],
+        });
+    } catch (error) {
+        await api.close();
+        throw error;
+    }
     const project = snapshot.getProject(snapshot.operation.createdPrograms[0].id)!;
     return {
-        query: (path: string) => query(project, path),
+        query: (path: string, framework?: 'react' | 'vue' | null, inspect?: Inspect) =>
+            query(project, path, framework, inspect),
         includes: async (path: string) => Boolean(await project.program.getSourceFile(path)),
         close: async () => {
-            await snapshot.dispose();
-            await api.close();
+            try {
+                await snapshot.dispose();
+            } finally {
+                await api.close();
+            }
         },
     };
 }

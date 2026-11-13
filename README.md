@@ -84,6 +84,7 @@ code-eer/
 
 - 核心服务、CLI、本地 stdio 服务和公共契约采用 TypeScript + Node.js。
 - 五个语言后端及 React / Vue 3 已接入真实解析器，提供结构事实、语法诊断和能力状态。
+- [框架语义](docs/technical-designs/2026-11-13/framework-semantics.md)提供 React JSX 组件与 Props 类型、Vue 模板作用域与静态组件引用。CLI 使用 `analyze --semantic` 查询。
 - 协议具备运行时校验、请求关联、超时、取消与后端故障隔离。
 - 类型与符号能力、框架语义、MCP 入口、审查规则和前端工作台按后续阶段推进。
 

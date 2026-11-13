@@ -10,7 +10,8 @@ import type { FileResult, Language } from './schema.js';
 import { semanticSchema } from './semantic-schema.js';
 import { vueSemantics } from './semantic-vue.js';
 
-let typescript: Awaited<ReturnType<typeof createTypescriptSession>> | undefined;
+type TypeScriptSession = Awaited<ReturnType<typeof createTypescriptSession>>;
+let typescript: { session: TypeScriptSession } | { error: unknown } | undefined;
 
 export function semanticAvailable(language: Language): boolean {
     if (language === 'js-ts') return true;
@@ -24,19 +25,30 @@ export function semanticAvailable(language: Language): boolean {
 }
 
 export async function prepareSemantics(language: Language, params: AnalyzeParams, paths: string[]): Promise<void> {
-    if (language === 'js-ts' && params.capabilities.some((item) => item === 'symbols' || item === 'types'))
-        if (paths.some((path) => !path.endsWith('.vue')))
-            typescript = await createTypescriptSession(
-                params,
-                paths.filter((path) => !path.endsWith('.vue')),
-            );
+    if (language !== 'js-ts' || !params.capabilities.some((item) => item === 'symbols' || item === 'types')) return;
+    const scripts = paths.filter((path) => !path.endsWith('.vue'));
+    if (!scripts.length) return;
+    try {
+        typescript = { session: await createTypescriptSession(params, scripts) };
+    } catch (error) {
+        typescript = { error };
+    }
 }
 
 export async function closeSemantics(): Promise<void> {
     const current = typescript;
     typescript = undefined;
-    await current?.close();
+    if (current && 'session' in current) await current.session.close();
     await closeLanguageServers();
+}
+
+async function queryTypeScript(file: FileResult, path: string, source: string, params: AnalyzeParams) {
+    if (path.endsWith('.vue')) return vueSemantics(path, source, params);
+    if (typescript && 'error' in typescript) throw typescript.error;
+    const session = typescript?.session;
+    return session && (await session.includes(path))
+        ? session.query(path, file.framework)
+        : typescriptSemantics(path, params, file.framework);
 }
 
 export async function addSemantics(
@@ -49,11 +61,7 @@ export async function addSemantics(
     try {
         const result =
             file.language === 'js-ts'
-                ? path.endsWith('.vue')
-                    ? await vueSemantics(path, source, params)
-                    : await (typescript && (await typescript.includes(path))
-                          ? typescript.query(path)
-                          : typescriptSemantics(path, params))
+                ? await queryTypeScript(file, path, source, params)
                 : file.language === 'java' || file.language === 'go'
                   ? await nativeSemantics(file.language, path, source, params)
                   : await lspSemantics(file.language, path, source, params.root);

@@ -166,7 +166,8 @@ export function coverageFor(language: Language, framework?: 'react' | 'vue' | nu
         base.nativeNodes.push('React component candidates', 'CallExpression(Hook candidate)');
         base.metadata.push('evidence', 'certainty', 'bindingResolution', 'usage', 'imported', 'arguments');
         base.limitations.push(
-            'React components and Hooks are syntax candidates; cross-file targets and prop types are unresolved',
+            'React component declarations and Hooks are syntax candidates; JSX use sites expose Checker definitions and contextual prop types under semantic capabilities',
+            'Spread attributes retain syntax evidence',
         );
     }
     if (framework === 'vue') {
@@ -200,7 +201,7 @@ export function coverageFor(language: Language, framework?: 'react' | 'vue' | nu
             'bindingResolution',
         );
         base.limitations.push(
-            'Template and slot binding targets and component prop types are unresolved',
+            'Semantic template bindings cover inline script setup, v-for and v-slot; runtime registrations and component prop types are outside coverage',
             'Style and custom blocks expose attributes and ranges; preprocessor support is declared per block',
         );
     }

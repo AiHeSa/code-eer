@@ -16,6 +16,7 @@ async function main(): Promise<void> {
             tsconfig: { type: 'string' },
             include: { type: 'string', multiple: true },
             exclude: { type: 'string', multiple: true },
+            semantic: { type: 'boolean' },
             'no-tests': { type: 'boolean' },
         },
     });
@@ -26,7 +27,7 @@ async function main(): Promise<void> {
     }
     if (!['analyze', 'capabilities'].includes(command ?? '')) {
         console.log(
-            'Usage: npm run dev -- <capabilities|analyze|serve> --backend <js-ts|python|java|go|rust> [--root path] [files...]',
+            'Usage: npm run dev -- <capabilities|analyze|serve> --backend <js-ts|python|java|go|rust> [--root path] [--semantic] [files...]',
         );
         return;
     }
@@ -39,6 +40,7 @@ async function main(): Promise<void> {
             root: resolve(values.root ?? process.cwd()),
             files,
             framework: values.framework,
+            capabilities: values.semantic ? ['syntax', 'structure', 'symbols', 'types'] : undefined,
             include: values.include,
             exclude: values.exclude,
             tests: !values['no-tests'],

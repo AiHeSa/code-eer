@@ -1,8 +1,9 @@
-import { existsSync, readdirSync } from 'node:fs';
-import { dirname, join, delimiter } from 'node:path';
+import { existsSync } from 'node:fs';
+import { dirname, isAbsolute, join, relative, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { repositoryRoot } from './root.js';
 import { LspClient, object, type LspCommand } from './lsp-client.js';
+import { rustAnalyzerAvailable, rustAnalyzerCommand, rustSysroot } from './rust-toolchain.js';
 
 const root = repositoryRoot(),
     toolchains = join(root, '.cache/toolchains');
@@ -10,8 +11,11 @@ const sessions = new Map<string, Promise<{ client: LspClient; version: string }>
 
 function cargoRoot(path: string, boundary: string): string {
     let directory = dirname(path);
-    while (directory.startsWith(boundary)) {
+    while (true) {
+        const rel = relative(boundary, directory);
+        if (rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel)) break;
         if (existsSync(join(directory, 'Cargo.toml'))) return directory;
+        if (!rel) break;
         const parent = dirname(directory);
         if (parent === directory) break;
         directory = parent;
@@ -20,11 +24,9 @@ function cargoRoot(path: string, boundary: string): string {
 }
 
 export function semanticServerAvailable(language: 'python' | 'rust'): boolean {
-    return existsSync(
-        language === 'python'
-            ? join(root, 'node_modules/pyright/dist/pyright-langserver.js')
-            : join(toolchains, 'cargo/bin/rust-analyzer'),
-    );
+    return language === 'python'
+        ? existsSync(join(root, 'node_modules/pyright/dist/pyright-langserver.js'))
+        : rustAnalyzerAvailable();
 }
 
 function command(language: 'python' | 'rust'): LspCommand {
@@ -33,28 +35,12 @@ function command(language: 'python' | 'rust'): LspCommand {
             command: process.execPath,
             args: [join(root, 'node_modules/pyright/dist/pyright-langserver.js'), '--stdio'],
         };
-    return {
-        command: join(toolchains, 'cargo/bin/rust-analyzer'),
-        args: [],
-        env: {
-            ...process.env,
-            CARGO_HOME: process.env['CARGO_HOME'] ?? join(toolchains, 'cargo'),
-            RUSTUP_HOME: process.env['RUSTUP_HOME'] ?? join(toolchains, 'rustup'),
-            PATH: [join(toolchains, 'cargo/bin'), process.env['PATH']].filter(Boolean).join(delimiter),
-            CARGO_NET_OFFLINE: 'true',
-            CARGO_BUILD_TARGET_DIR: join(root, '.cache/semantic-rust-target'),
-        },
-    };
+    return rustAnalyzerCommand();
 }
 
 async function start(language: 'python' | 'rust', workspace: string, path: string) {
-    const installed = join(toolchains, 'rustup/toolchains');
-    const toolchain =
-        language === 'rust' && existsSync(installed)
-            ? readdirSync(installed)
-                  .map((name) => join(installed, name))
-                  .find((path) => existsSync(join(path, 'bin/rustc')))
-            : undefined;
+    const server = command(language);
+    const toolchain = language === 'rust' ? rustSysroot(server) : undefined;
     const detachedRoot = existsSync(join(workspace, 'lib.rs')) ? join(workspace, 'lib.rs') : path;
     const linkedProjects = existsSync(join(workspace, 'Cargo.toml'))
         ? [join(workspace, 'Cargo.toml')]
@@ -92,7 +78,7 @@ async function start(language: 'python' | 'rust', workspace: string, path: strin
         },
     };
     const settings = language === 'rust' ? { 'rust-analyzer': rust } : { python };
-    const client = new LspClient(command(language), settings);
+    const client = new LspClient(server, settings);
     try {
         const response = object(
             await client.request('initialize', {

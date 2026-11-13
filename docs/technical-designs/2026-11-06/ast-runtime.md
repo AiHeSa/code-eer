@@ -23,7 +23,7 @@ npm run check:limits
 
 `setup:backends` 构建 Go、Rust 和 Java 后端；支持传入后端名称分别构建，例如 `npm run setup:backends -- java`。Go 使用 Go 工具链，Rust 使用 Cargo 锁文件，Java 使用 JDK 17+ 的 `javac` 并下载带 SHA-256 校验的依赖 JAR。
 
-Python 后端直接调用解释器；`CODE_EER_PYTHON` 与 `CODE_EER_JAVA` 可分别配置解释器和 JVM 的可执行文件路径。依赖和构建产物放在 `.cache/`、Rust `target/` 与 Java `build/`。
+Python 后端直接调用解释器；`CODE_EER_PYTHON` 与 `CODE_EER_JAVA` 可分别配置解释器和 JVM 的可执行文件路径。Rust 语义分析使用 `CODE_EER_RUST_ANALYZER`、项目工具链、PATH 的顺序查找分析器；`setup:backends` 安装 `rust-analyzer` 和 `rust-src`。依赖和构建产物放在 `.cache/`、Rust `target/` 与 Java `build/`。
 
 ## 2. CLI 与调用入口
 
@@ -31,12 +31,13 @@ Python 后端直接调用解释器；`CODE_EER_PYTHON` 与 `CODE_EER_JAVA` 可�
 npm run dev -- capabilities --backend python
 npm run dev -- analyze --backend js-ts --root . tests/fixtures/ast/js-ts/React.tsx
 npm run dev -- analyze --backend js-ts --root . tests/fixtures/ast/js-ts/View.vue
+npm run dev -- analyze --backend js-ts --semantic --root . tests/fixtures/ast/js-ts/View.vue
 npm run dev -- analyze --backend python --root tests/fixtures/ast/python
 node dist/services/cli/index.js analyze --backend rust --root tests/fixtures/ast/rust
 node dist/services/cli/index.js serve
 ```
 
-`--backend` 支持 `js-ts`、`python`、`java`、`go`、`rust`。文件列表为空时扫描项目根目录；支持 `--include`、`--exclude`、`--no-tests`、`--framework react|vue`、`--tsconfig` 与 `--timeout`。
+`--backend` 支持 `js-ts`、`python`、`java`、`go`、`rust`。文件列表为空时扫描项目根目录；支持 `--include`、`--exclude`、`--no-tests`、`--framework react|vue`、`--tsconfig` 与 `--timeout`。`--semantic` 在语法和结构之外请求符号与类型。
 
 代码调用入口为 [AstService](../../../services/code-review/internal/ast/service.ts)，提供 `dispatch`、`analyze`、`capabilities` 与 `close`。每个后端的请求串行处理，各后端独立运行。调用方完成任务后关闭服务。
 
@@ -66,6 +67,7 @@ Schema 源文件：[请求与响应](../../../services/code-review/internal/ast/
 - 文件 URI、SHA-256 源码摘要、框架标记、结构事实与编译器诊断。
 - 文件级 `coverage` 转换范围及限制、`syntax` 解析器版本及有效目标配置。
 - 文件级和整体运行错误、未执行项，以及实际执行能力。
+- 语义查询结果 `semantic`，包含定义、类型、诊断与限制；React 和 Vue 的专属结果位于可选的 `semantic.framework`。
 - `findings` 为审查规则结果，本轮保持为空。
 
 协议或工具调用失败返回 `ok: false`，并通过 `error.code` 与 `error.message` 表达原因。错误码包括 `INVALID_REQUEST`、`UNSUPPORTED_PROTOCOL`、`BACKEND_UNAVAILABLE`、`BACKEND_EXIT`、`INVALID_RESPONSE`、`RESPONSE_MISMATCH`、`MESSAGE_TOO_LARGE` 和 `TIMEOUT`。
@@ -108,7 +110,7 @@ Vue 支持普通脚本与 `script setup` 共存，保留 props / emits、编译�
 
 `coverage.projection` 为 `selected-facts`，`nativeNodes` 列出映射节点及条件，`metadata` 列出扩展字段，`limitations` 声明当前范围。`syntax.versionConstraint` 标明解析器约束、尽力约束或未约束；TypeScript 的编译目标、Python feature_version、Java LanguageLevel 和 Rust edition 记录到文件结果。
 
-`symbols` 和 `types` 当前均返回未执行项及原因。模板绑定、插槽作用域解析、跨文件组件目标、Java classpath、Go 包类型、Rust 宏展开与 edition 约束属于后续语义接入范围。TypeScript 项目引用的项目级分析和会话缓存待扩展；当前使用显式或扫描得到的源码集合。
+`symbols` 和 `types` 使用 [五语言语义提供者](../2026-11-07/compiler-semantics.md)。React JSX 组件引用和 Props 类型，以及 Vue 模板绑定与静态组件引用，见[框架语义契约](../2026-11-13/framework-semantics.md)。未解析的目标保留空定义；部分结果保留诊断与范围说明。
 
 ## 6. 验证
 
@@ -118,4 +120,4 @@ Vue 支持普通脚本与 `script setup` 共存，保留 props / emits、编译�
 
 `npm run verify:ast` 顺序执行类型检查、构建、回归测试、编译产物的大源码验证、行数检查和完整性审计，任一步失败即返回失败。准备原生后端后运行该命令；单独运行大源码验证使用 `npm run verify:ast:corpus`。覆盖清单、预期定义和结果解释见[验证矩阵](ast-verification.md)。
 
-`npm run audit:ast` 检查当前阶段的针对性用例，22 项通过，返回退出码 0 和 `baseline-probes-passed`；五个后端的后续类型及符号能力分别记录为未实现。执行前运行 `npm run build`；报告保存为 `.cache/verification/ast-completeness.json`。逐项结果见[完整性审计](ast-completeness-audit.md)。
+`npm run audit:ast` 检查语法、结构与五语言类型和符号能力。执行前运行 `npm run build`；报告保存为 `.cache/verification/ast-completeness.json`。首轮结构基线见[完整性审计](ast-completeness-audit.md)。

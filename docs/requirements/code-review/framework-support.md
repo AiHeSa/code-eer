@@ -2,7 +2,7 @@
 
 - 需求编号：REQ-FRAMEWORK-001
 - 日期：2026-11-06
-- 状态：框架结构基线已通过当前验证，框架级语义分析持续实施中
+- 状态：结构基线、React JSX 组件与 Props 语义、Vue 模板绑定与静态组件引用已实现
 - 关联需求：[REQ-AST-001](ast-integration.md)
 - 接入方案：[TD-AST-001](../../technical-designs/2026-11-06/ast-integration-plan.md)
 - 格式方案：[结构转换与结果格式](../../technical-designs/2026-11-06/ast-normalization.md)
@@ -56,5 +56,5 @@
 ## 6. 当前交付状态
 
 - **已完成能力核验**：组件候选项识别、Hook 来源追踪、项目依赖框架识别、Vue Options API 提取及编译器宏上下文检查均已通过验证。逐项输入、输出与验证边界详见[功能完整性审计](../../technical-designs/2026-11-06/ast-completeness-audit.md)。
-- **已接入范围与后续扩展**：目前已接入 React JSX / TSX 与 Vue 3 SFC，并验证了匿名默认导出、函数与类组件候选识别、Hook 导入别名与局部同名遮蔽、双脚本共存、编译器宏、模板指令、外部 `src` 脚本及原始源码位置映射。跨文件绑定目标解析、模板与插槽完整作用域连通、组件 Props 跨文件类型推导等能力正作为独立扩展项继续推进，详见[运行说明](../../technical-designs/2026-11-06/ast-runtime.md)。
+- **框架语义**：React JSX 可查询跨文件组件定义和使用处的 Props 类型；Vue HTML 模板可查询内联 `script setup`、`v-for` 与 `v-slot` 的绑定来源，以及静态组件目标。结果契约和待扩展范围见[框架语义契约](../../technical-designs/2026-11-13/framework-semantics.md)。
 - **测试验证矩阵**：React 精确 JSX 结构、命名空间 Hook 调用（如 `React.useState`）、调用包装箭头函数与参数遮蔽，以及 Vue 精确区块与模板清单、动态指令参数、修饰符、插槽和外部区块失败状态的验证结果，详见[验证矩阵](../../technical-designs/2026-11-06/ast-verification.md)。
